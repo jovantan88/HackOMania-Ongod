@@ -1,27 +1,28 @@
 import { useEffect, useState } from 'react';
-import "./App.css"
+import { supabase } from './config/supabase'
+import { MapPin, Calendar, Sun, Moon } from 'lucide-react';
+import './App.css';
 
-// Predefined fake events dictionary keyed by subreddit name.
 const eventsBySubreddit = {
   reactjs: [
-    { name: "React Meetup", date: "2025-11-01", location: "New York", attendees: 120 },
-    { name: "Hooks Workshop", date: "2025-12-05", location: "San Francisco", attendees: 80 }
+    { name: 'React Meetup', date: '2025-11-01', location: 'New York', attendees: 120 },
+    { name: 'Hooks Workshop', date: '2025-12-05', location: 'San Francisco', attendees: 80 }
   ],
   warthunder: [
-    { name: "JS Conference", date: "2025-10-20", location: "Los Angeles", attendees: 200 },
-    { name: "ECMAScript Meetup", date: "2025-11-15", location: "Chicago", attendees: 50 }
+    { name: 'JS Conference', date: '2025-10-20', location: 'Los Angeles', attendees: 200 },
+    { name: 'ECMAScript Meetup', date: '2025-11-15', location: 'Chicago', attendees: 50 }
   ],
   gaming: [
-    { name: "Gaming Expo", date: "2025-12-10", location: "Las Vegas", attendees: 300 }
+    { name: 'Gaming Expo', date: '2025-12-10', location: 'Las Vegas', attendees: 300 }
   ]
 };
 
 function App() {
   const [subreddit, setSubreddit] = useState('');
   const [events, setEvents] = useState([]);
-  const [tabId, setTabId] = useState()
+  const [tabId, setTabId] = useState();
+  const [darkMode, setDarkMode] = useState(false);
 
-  // Get the active tab URL and extract the subreddit (if present)
   useEffect(() => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.url) {
@@ -36,32 +37,32 @@ function App() {
     });
   }, []);
 
-  // Function to inject "Hello World" banner into the active tab
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.body.classList.toggle('dark');
+  };
+
   const handleEventClick = (event) => {
     if (tabId === null) {
       console.warn('Tab ID not available');
       return;
     }
 
-    // This function is injected into the page.
     function injectEventContent(eventDetails) {
-      // Remove any existing injected event (if any)
       const existing = document.getElementById('reddit-event');
       if (existing) {
         existing.remove();
       }
 
-      // Create the container for our injected Reddit-like post
       const container = document.createElement('div');
       container.id = 'reddit-event';
-      container.style.border = "1px solid #ccc";
-      container.style.borderRadius = "8px";
-      container.style.padding = "12px";
-      container.style.margin = "10px 0";
-      container.style.backgroundColor = "#fff";
-      container.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+      container.style.border = '1px solid #ccc';
+      container.style.borderRadius = '12px';
+      container.style.padding = '16px';
+      container.style.margin = '10px 0';
+      container.style.backgroundColor = '#fff';
+      container.style.boxShadow = '0 4px 6px rgba(0,0,0,0.2)';
 
-      // Create the HTML content for the Reddit post appearance
       container.innerHTML = `
         <div class="iframe-container">
           <iframe 
@@ -69,9 +70,8 @@ function App() {
             style="border: none; width: 100%; height: 100%;"
           ></iframe>
         </div>
-        `;
+      `;
 
-      // Add this CSS to your stylesheet
       const style = document.createElement('style');
       style.textContent = `
           .iframe-container {
@@ -88,10 +88,9 @@ function App() {
             width: 100%;
             height: 100%;
           }
-        `;
+      `;
       document.head.appendChild(style);
 
-      // Look for the target element; here we're following the original pattern.
       const loader = document.querySelector('shreddit-async-loader[bundlename="navigation_links"]');
       if (loader) {
         loader.insertAdjacentElement('afterend', container);
@@ -100,7 +99,6 @@ function App() {
       }
     }
 
-    // Execute the script using chrome.scripting.executeScript and pass event details as an argument.
     chrome.scripting.executeScript({
       target: { tabId: tabId },
       world: 'MAIN',
@@ -112,18 +110,20 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <a
-        href="https://hack-o-mania-ongod.vercel.app/register-event"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <button
-          className="mb-3 relative px-6 py-3 bg-blue-200 text-white font-bold text-xl rounded-xl hover:bg-blue-700 transition duration-300 shadow-lg before:absolute before:inset-0 before:bg-gray-800 before:rounded-xl before:z-0"
+    <div className={`app-container ${darkMode ? 'dark' : ''}`}>
+      <div className="header">
+        <a
+          href="https://hack-o-mania-ongod.vercel.app/register-event"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <span className="relative z-10">Add Event</span>
+          <button className="add-event-btn">Add Event</button>
+        </a>
+        <button className="theme-toggle" onClick={toggleDarkMode}>
+          {darkMode ? <Sun size={24} /> : <Moon size={24} />}
         </button>
-      </a>
+      </div>
+
       <h1 className="title">Subreddit Events</h1>
       {subreddit ? (
         <>
