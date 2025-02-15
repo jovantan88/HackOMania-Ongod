@@ -6,6 +6,7 @@ export async function GET(request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/';
+  console.log('code:', code);
 
   if (code) {
     const cookieStore = cookies();
@@ -35,6 +36,5 @@ export async function GET(request) {
     }
   }
 
-  // ...existing code...
   return NextResponse.redirect(`${origin}/auth/auth-code-error`);
 }
