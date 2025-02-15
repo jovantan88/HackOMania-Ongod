@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { getAllEvents } from "@/actions/actions"
+import { getAllEvents, trackEventClick } from "@/actions/actions"
 
 import {
   Dialog,
@@ -136,6 +136,15 @@ export default function Dashboard() {
       (!end || (eventDate && eventDate <= end))
     return matchesSearch && matchesPrice && matchesDate
   })
+
+  const handleEventClick = async (eventUrl) => {
+    if (session?.user?.user_metadata?.user_name) {
+      await trackEventClick(eventUrl, session.user.user_metadata.user_name);
+    } else {
+      await trackEventClick(eventUrl, null);
+    }
+    window.open(eventUrl, '_blank');
+  };
 
   return (
     <div className="flex h-screen flex-col relative">
@@ -313,8 +322,11 @@ export default function Dashboard() {
           <p className="font-bold">{selectedDetail?.price === 0 ? "Free" : `$${selectedDetail?.price}`}</p>
           <DialogFooter>
             <div className="flex w-full justify-between">
-              <Button asChild variant="outline">
-                <a href={selectedDetail?.url} target="_blank" rel="noopener noreferrer">Sign up here</a>
+              <Button
+                variant="outline"
+                onClick={() => handleEventClick(selectedDetail?.url)}
+              >
+                Sign up here
               </Button>
               <Button onClick={() => setSelectedDetail(null)}>Close</Button>
             </div>
