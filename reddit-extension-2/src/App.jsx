@@ -63,11 +63,33 @@ function App() {
       
       // Create the HTML content for the Reddit post appearance
       container.innerHTML = `
-        <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">${eventDetails.name}</div>
-        <div style="font-size: 14px; margin-bottom: 4px;"><strong>Date:</strong> ${eventDetails.date}</div>
-        <div style="font-size: 14px; margin-bottom: 4px;"><strong>Location:</strong> ${eventDetails.location}</div>
-        <div style="font-size: 14px;"><strong>Attendees:</strong> ${eventDetails.attendees}</div>
-      `;
+        <div class="iframe-container">
+          <iframe 
+            src="https://hack-o-mania-ongod.vercel.app/" 
+            style="border: none; width: 100%; height: 100%;"
+          ></iframe>
+        </div>
+        `;
+
+        // Add this CSS to your stylesheet
+        const style = document.createElement('style');
+        style.textContent = `
+          .iframe-container {
+            position: relative;
+            width: 100%;
+            height: min(800px, 90vh);
+            overflow: hidden;
+          }
+
+          .iframe-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+          }
+        `;
+        document.head.appendChild(style);
       
       // Look for the target element; here we're following the original pattern.
       const loader = document.querySelector('shreddit-async-loader[bundlename="navigation_links"]');
