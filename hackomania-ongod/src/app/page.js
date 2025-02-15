@@ -33,6 +33,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
+const LINKEDIN_CLIENT_ID = process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID || "";
+
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
@@ -153,7 +155,8 @@ export default function Dashboard() {
               </Select>
               {/* Removed date input fields */}
             </div>
-            {/* <Button>Add event</Button> */}
+            <a href={`https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=https://hack-o-mania-ongod.vercel.app/callback&state=foobar&scope=liteprofile%20emailaddress%20w_member_social`} target="_blank">
+              <Button>Add event</Button></a>
           </div>
           <Map
             {...viewState}
