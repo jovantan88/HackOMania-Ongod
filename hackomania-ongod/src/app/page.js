@@ -287,7 +287,7 @@ export default function Dashboard() {
         </div>
       </div>
       <Dialog open={!!selectedDetail} onOpenChange={(open) => { if (!open) setSelectedDetail(null) }}>
-        <DialogContent className="overflow-y-auto max-h-[calc(100vh-200px)]">
+        <DialogContent className="overflow-y-auto max-h-[calc(100vh-50px)]">
           <DialogHeader>
             <div className="flex items-center w-full">
               <img
