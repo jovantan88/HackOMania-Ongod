@@ -9,8 +9,6 @@ import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 
-import Image from 'next/image'
-
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -93,17 +91,10 @@ export default function Dashboard() {
     return matchesSearch && matchesPrice && matchesDate
   })
 
-  console.log(filteredEvents);
-
-  //   < div className = "flex items-center justify-between border-b p-4" >
-  //   <div>
-  //     </div>
-  // </div >
-
   return (
     <div className="flex h-screen flex-col">
       <div className="flex flex-1 relative">
-        <div className="w-1/2 max-w-[500px] overflow-y-auto border-l">
+        <div className="w-1/2 max-w-[500px] h-screen overflow-y-scroll border-l">
           <h2 className="text-xl font-bold p-4">Events</h2>
           {filteredEvents.map((event) => (
             <div
@@ -121,12 +112,13 @@ export default function Dashboard() {
                   {/* Added date display for each event */}
                   <div>
                     <p className="text-xs text-gray-500 float-start text-bottom">{new Date(event.date).toDateString()}</p>
-                    <p className="text-xs font-bold float-end">${event.price}</p></div>
+                    <p className="text-xs font-bold float-end">{event.price === 0 ? "Free" : `$${event.price}`}</p>
+                  </div>
                 </div>
                 <img
                   src={event.image_url}
                   width={150}
-                  height={100}
+                  height={80}
                   alt="Picture of the author"
                   className="rounded"
                 />
@@ -157,8 +149,8 @@ export default function Dashboard() {
               </Select>
               {/* Removed date input fields */}
             </div>
-            <a href={`https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=https://hack-o-mania-ongod.vercel.app/callback&state=foobar&scope=liteprofile%20emailaddress%20w_member_social`} target="_blank">
-              <Button>Add event</Button></a>
+            {/* <a href={`https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=https://hack-o-mania-ongod.vercel.app/callback&state=foobar&scope=liteprofile%20emailaddress%20w_member_social`} target="_blank">
+              <Button>Add event</Button></a> */}
           </div>
           <Map
             {...viewState}
@@ -266,7 +258,7 @@ export default function Dashboard() {
             <MapPin className="mr-1 inline-block h-4 w-4" />
             {selectedDetail?.location}
           </p>
-          <p className="font-bold">${selectedDetail?.price}</p>
+          <p className="font-bold">{selectedDetail?.price === 0 ? "Free" : `$${selectedDetail?.price}`}</p>
           <DialogFooter>
             <div className="flex w-full justify-between">
               <Button asChild variant="outline">
