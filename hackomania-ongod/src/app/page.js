@@ -9,6 +9,8 @@ import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 
+import Image from 'next/image'
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -18,14 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet"
 
 import { getAllEvents } from "@/actions/actions"
 
@@ -96,6 +90,7 @@ export default function Dashboard() {
     return matchesSearch && matchesPrice && matchesDate
   })
 
+  console.log(filteredEvents);
 
   //   < div className = "flex items-center justify-between border-b p-4" >
   //   <div>
@@ -105,22 +100,34 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen flex-col">
       <div className="flex flex-1 relative">
-        <div className="w-1/3 overflow-y-auto border-l">
+        <div className="w-1/2 max-w-[500px] overflow-y-auto border-l">
           <h2 className="text-xl font-bold p-4">Events</h2>
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="mb-4 cursor-pointer rounded border-b p-4 hover:bg-gray-100"
+              className="mb-4 cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100"
               onClick={() => setSelectedDetail(event)}
             >
-              <h3 className="text-lg font-semibold">{event.name}</h3>
-              <p className="text-sm">
-                <MapPin className="mr-1 inline-block h-4 w-4" />
-                {event.location}
-              </p>
-              {/* Added date display for each event */}
-              <p className="text-xs text-gray-500">Date: {event.date}</p>
-              <p className="font-bold">${event.price}</p>
+              <div className="flex flex-row items-center justify-between gap-4">
+                <div className="flex flex-col">
+                  <h3 className="text-lg font-semibold">{event.name}</h3>
+                  <p className="text-sm">
+                    <MapPin className="mr-1 inline-block h-4 w-4" />
+                    {event.location}
+                  </p>
+                  {/* Added date display for each event */}
+                  <div>
+                    <p className="text-xs text-gray-500 float-start text-bottom">{new Date(event.date).toDateString()}</p>
+                    <p className="text-xs font-bold float-end">${event.price}</p></div>
+                </div>
+                <img
+                  src={event.image_url}
+                  width={150}
+                  height={100}
+                  alt="Picture of the author"
+                  className="rounded"
+                />
+              </div>
             </div>
           ))}
         </div>
@@ -146,7 +153,7 @@ export default function Dashboard() {
               </Select>
               {/* Removed date input fields */}
             </div>
-            <Button>Add event</Button>
+            {/* <Button>Add event</Button> */}
           </div>
           <Map
             {...viewState}
