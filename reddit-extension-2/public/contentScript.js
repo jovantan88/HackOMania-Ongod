@@ -31,7 +31,13 @@ function injectEventContent() {
           src="https://hack-o-mania-ongod.vercel.app/"
           style="border: none; width: 100%; height: 100%;"
         ></iframe>
-      </div>
+        <a href="https://hack-o-mania-ongod.vercel.app/register-event" target="_blank" rel="noopener noreferrer">
+      <button class="px-6 py-3 bg-blue-600 text-white font-bold text-xl rounded-xl hover:bg-blue-700 transition duration-300 shadow-lg"
+        style="position: absolute; bottom: 20px; right: 20px;">
+        Add Event
+      </button>
+    </a>
+      </div> 
     `;
 
     if (!document.getElementById('reddit-event-style')) {
@@ -87,7 +93,7 @@ const observer = new MutationObserver(() => {
     const currentUrl = location.href;
     if (currentUrl !== lastUrl) {
         lastUrl = currentUrl;
-        setTimeout(checkAndInject, 1000); 
+        setTimeout(checkAndInject, 1000);
     }
 });
 observer.observe(document.body, { subtree: true, childList: true });
