@@ -20,6 +20,7 @@ export default defineConfig({
   build: {
     outDir: 'build',
     rollupOptions: {
+      external: ['@supabase/supabase-js'],
       input: {
         main: './index.html'
       }
