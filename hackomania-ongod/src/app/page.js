@@ -1,10 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { MapPin, Search } from 'lucide-react'
+import { MapPin, Search, Calendar } from 'lucide-react' // Added Calendar icon
 import Map, { Marker } from "react-map-gl/mapbox";
 import { Popup } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css"
+import { DateRange } from "react-date-range";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,16 +42,20 @@ import {
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
-  const [startDate, setStartDate] = React.useState("")
-  const [endDate, setEndDate] = React.useState("")
+  const [dateRange, setDateRange] = React.useState([{
+      startDate: new Date(), 
+      endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)),
+      key: 'selection'
+  }])
+  const [showCalendar, setShowCalendar] = React.useState(false) // New state for toggling calendar
   const [viewState, setViewState] = React.useState({
     longitude: 103.8198,
     latitude: 1.3521,
     zoom: 11.5,
   })
   const [events, setEvents] = React.useState([])
-  const [selectedEvent, setSelectedEvent] = React.useState(null) // New state for popup
-  const [selectedDetail, setSelectedDetail] = React.useState(null) // New state for modal
+  const [selectedEvent, setSelectedEvent] = React.useState(null)
+  const [selectedDetail, setSelectedDetail] = React.useState(null)
 
   React.useEffect(() => {
     async function fetchEvents() {
@@ -64,7 +71,7 @@ export default function Dashboard() {
           coordinates: [event.lon, event.lat],
           image_url: event.image_url,
           url: event.url,
-          date: event.date  // new field for event date (expects YYYY-MM-DD)
+          date: event.datetime
         }))
         setEvents(transformed)
       }
@@ -75,11 +82,16 @@ export default function Dashboard() {
   const filteredEvents = events.filter((event) => {
     const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesPrice =
-      priceFilter === "" || (priceFilter === "under100" && event.price < 100) || (priceFilter === "over100" && event.price >= 100)
+      priceFilter === "" ||
+      priceFilter === "all" || // Added "all" condition
+      (priceFilter === "under100" && event.price < 100) ||
+      (priceFilter === "over100" && event.price >= 100)
     const eventDate = event.date ? new Date(event.date) : null
+    const start = dateRange[0].startDate;
+    const end = dateRange[0].endDate;
     const matchesDate =
-      (!startDate || (eventDate && eventDate >= new Date(startDate))) &&
-      (!endDate || (eventDate && eventDate <= new Date(endDate)))
+      (!start || (eventDate && eventDate >= start)) &&
+      (!end || (eventDate && eventDate <= end))
     return matchesSearch && matchesPrice && matchesDate
   })
 
@@ -104,21 +116,7 @@ export default function Dashboard() {
               <SelectItem value="over100">$100 and above</SelectItem>
             </SelectContent>
           </Select>
-          {/* New date inputs */}
-          <Input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            placeholder="Start Date"
-            className="w-[150px]"
-          />
-          <Input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            placeholder="End Date"
-            className="w-[150px]"
-          />
+          {/* Removed date input fields */}
         </div>
         <Sheet>
           <SheetTrigger asChild>
@@ -135,7 +133,7 @@ export default function Dashboard() {
           </SheetContent>
         </Sheet>
       </div>
-      <div className="flex flex-1">
+      <div className="flex flex-1 relative">
         <div className="w-1/3 overflow-y-auto border-l p-4">
           <h2 className="mb-4 text-xl font-bold">Events</h2>
           {filteredEvents.map((event) => (
@@ -149,6 +147,8 @@ export default function Dashboard() {
                 <MapPin className="mr-1 inline-block h-4 w-4" />
                 {event.location}
               </p>
+              {/* Added date display for each event */}
+              <p className="text-xs text-gray-500">Date: {event.date}</p>
               <p className="font-bold">${event.price}</p>
             </div>
           ))}
@@ -196,6 +196,42 @@ export default function Dashboard() {
               </Popup>
             )}
           </Map>
+          {/* Calendar Button Overlay */}
+          <div style={{
+            position: "absolute",
+            bottom: "20px",
+            right: "20px",
+            zIndex: 10
+          }}>
+            <Button onClick={() => setShowCalendar(prev => !prev)} variant="outline">
+              <Calendar className="w-5 h-5" />
+            </Button>
+          </div>
+          {/* Conditionally render DateRange overlay */}
+          {showCalendar && (
+            <div style={{
+              position: "absolute",
+              bottom: "70px",
+              right: "20px",
+              background: "white",
+              padding: "10px",
+              borderRadius: "5px",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+              zIndex: 10
+            }}>
+              <DateRange
+                editableDateInputs={true}
+                onChange={item => setDateRange([item.selection])}
+                moveRangeOnFirstSelection={false}
+                ranges={dateRange}
+              />
+              <div className="mt-2 flex justify-end">
+                <Button onClick={() => setShowCalendar(false)} variant="outline" size="sm">
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <Dialog open={!!selectedDetail} onOpenChange={(open) => { if(!open) setSelectedDetail(null) }}>
@@ -214,6 +250,10 @@ export default function Dashboard() {
             <DialogDescription className="whitespace-normal break-words">
               {selectedDetail?.description}
             </DialogDescription>
+            {/* Added datetime display */}
+            <p className="text-xs text-gray-500">
+              {selectedDetail?.date && `Date: ${selectedDetail.date}`}
+            </p>
           </DialogHeader>
           {/* Removed large event image */}
           <p className="mb-2 text-sm flex items-center">
