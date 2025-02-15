@@ -81,6 +81,7 @@ export default function Dashboard() {
     const matchesPrice =
       priceFilter === "" ||
       priceFilter === "all" || // Added "all" condition
+      (priceFilter === "free" && event.price == 0) ||
       (priceFilter === "under100" && event.price < 100) ||
       (priceFilter === "over100" && event.price >= 100)
     const eventDate = event.date ? new Date(event.date) : null
@@ -149,6 +150,7 @@ export default function Dashboard() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All prices</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
                   <SelectItem value="under100">Under $100</SelectItem>
                   <SelectItem value="over100">$100 and above</SelectItem>
                 </SelectContent>
