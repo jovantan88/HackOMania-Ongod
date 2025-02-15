@@ -9,10 +9,10 @@ export default function RegisterEventPage() {
         <section className="bg-gradient-to-r from-purple-700 to-purple-800 text-white py-24">
           <div className="container mx-auto px-6 text-center">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
-              Register Your Event
+              Add an event
             </h1>
-            <p className="text-xl md:text-2xl mb-8 text-purple-100 max-w-2xl mx-auto">
-              Showcase your Eventbrite or Lu.ma events on our platform and reach a wider audience
+            <p className="text-xl md:text-2xl mb-8 text-purple-100 mx-auto">
+              Share a <a href="https://eventbrite.sg" className="underline">eventbrite</a> or <a href="https://lu.ma" className="underline">lu.ma</a> event on our platform
             </p>
           </div>
         </section>
@@ -22,7 +22,7 @@ export default function RegisterEventPage() {
           <Card className="max-w-3xl mx-auto shadow-2xl">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl font-semibold text-purple-700">
-                Submit Your Event
+                Submit your event
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
