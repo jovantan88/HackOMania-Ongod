@@ -185,37 +185,39 @@ const CommentSection = ({ eventUrl, session }) => {
   const topLevelComments = comments.filter(comment => !comment.parent_comment_id);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex-none px-2 pt-2">
+    <div className="h-full">
+      <div className="px-4 pt-2">
         <h3 className="text-lg font-semibold">Comments</h3>
       </div>
-      <div className="flex-1 overflow-y-auto p-2">
-        <div className="space-y-2">
-          {topLevelComments.map((comment) => (
-            <Comment
-              key={comment.id}
-              comment={comment}
-              onReply={handleSubmitComment}
-              session={session}
-              comments={comments}
-              onDelete={handleDeleteComment}
-            />
-          ))}
+      <div className="h-[calc(100%-120px)] overflow-y-auto">
+        <div className="ps-4 p-2">
+          <div className="space-y-2">
+            {topLevelComments.map((comment) => (
+              <Comment
+                key={comment.id}
+                comment={comment}
+                onReply={handleSubmitComment}
+                session={session}
+                comments={comments}
+                onDelete={handleDeleteComment}
+              />
+            ))}
+          </div>
         </div>
       </div>
-      <div className="flex-none p-2">
+      <div className="flex-none ps-4 p-2">
         {session ? (
           <div className="flex gap-1">
             <Input
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 h-8 text-sm"
+              className="flex-1 text-sm"
             />
             <Button
               onClick={() => handleSubmitComment(newComment)}
               disabled={!newComment.trim()}
-              className="h-8 text-sm"
+              className="text-sm"
             >
               Post
             </Button>
@@ -238,7 +240,7 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="overflow-hidden max-w-5xl max-h-[calc(100vh-200px)] flex flex-row justify-between grid grid-cols-2">
+      <DialogContent className="overflow-hidden max-w-5xl max-h-[calc(100vh-50px)] flex flex-row justify-between grid grid-cols-2">
         <div className="overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center w-full">
@@ -271,13 +273,13 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session }) => {
 
           <DialogFooter className="mt-4">
             <div className="flex w-full justify-between">
+              <Button onClick={onClose}>Close</Button>
               <Button
                 variant="outline"
                 onClick={handleEventClick}
               >
                 Sign up here
               </Button>
-              <Button onClick={onClose}>Close</Button>
             </div>
           </DialogFooter>
         </div>
