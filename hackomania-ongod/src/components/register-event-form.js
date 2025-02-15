@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useFormState } from "react-dom"
+import { useActionState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +11,7 @@ import { LinkIcon } from "lucide-react"
 
 export default function RegisterEventForm() {
   const [eventLink, setEventLink] = useState("")
-  const [state, formAction] = useFormState(registerEvent, null)
+  const [state, formAction] = useActionState(registerEvent, null)
 
   const handleSubmit = (e) => {
     e.preventDefault()
