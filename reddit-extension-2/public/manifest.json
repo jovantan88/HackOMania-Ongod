@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "name": "Reddit Events Extension",
+  "version": "1.0.0",
+  "description": "Displays fake events based on the subreddit and injects a Hello World banner.",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "tabs",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ]
+}
