@@ -99,7 +99,7 @@ export default function Dashboard() {
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="mb-4 cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100"
+              className="cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100"
               onClick={() => setSelectedDetail(event)}
             >
               <div className="flex flex-row items-center justify-between gap-4">
