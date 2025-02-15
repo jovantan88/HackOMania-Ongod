@@ -26,9 +26,21 @@ import {
 
 import { getAllEvents } from "@/actions/actions"
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
+  const [startDate, setStartDate] = React.useState("")
+  const [endDate, setEndDate] = React.useState("")
   const [viewState, setViewState] = React.useState({
     longitude: 103.8198,
     latitude: 1.3521,
@@ -36,6 +48,7 @@ export default function Dashboard() {
   })
   const [events, setEvents] = React.useState([])
   const [selectedEvent, setSelectedEvent] = React.useState(null) // New state for popup
+  const [selectedDetail, setSelectedDetail] = React.useState(null) // New state for modal
 
   React.useEffect(() => {
     async function fetchEvents() {
@@ -45,11 +58,13 @@ export default function Dashboard() {
         const transformed = result.events.map(event => ({
           id: event.id,
           name: event.name,
-          description: event.description,
+          description: event.short_description,
           location: event.address,
           price: parseFloat(event.price),
           coordinates: [event.lon, event.lat],
-          image_url: event.image_url // New field for marker image
+          image_url: event.image_url,
+          url: event.url,
+          date: event.date  // new field for event date (expects YYYY-MM-DD)
         }))
         setEvents(transformed)
       }
@@ -61,7 +76,11 @@ export default function Dashboard() {
     const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesPrice =
       priceFilter === "" || (priceFilter === "under100" && event.price < 100) || (priceFilter === "over100" && event.price >= 100)
-    return matchesSearch && matchesPrice
+    const eventDate = event.date ? new Date(event.date) : null
+    const matchesDate =
+      (!startDate || (eventDate && eventDate >= new Date(startDate))) &&
+      (!endDate || (eventDate && eventDate <= new Date(endDate)))
+    return matchesSearch && matchesPrice && matchesDate
   })
 
   return (
@@ -85,6 +104,21 @@ export default function Dashboard() {
               <SelectItem value="over100">$100 and above</SelectItem>
             </SelectContent>
           </Select>
+          {/* New date inputs */}
+          <Input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            placeholder="Start Date"
+            className="w-[150px]"
+          />
+          <Input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            placeholder="End Date"
+            className="w-[150px]"
+          />
         </div>
         <Sheet>
           <SheetTrigger asChild>
@@ -102,12 +136,29 @@ export default function Dashboard() {
         </Sheet>
       </div>
       <div className="flex flex-1">
+        <div className="w-1/3 overflow-y-auto border-l p-4">
+          <h2 className="mb-4 text-xl font-bold">Events</h2>
+          {filteredEvents.map((event) => (
+            <div
+              key={event.id}
+              className="mb-4 cursor-pointer rounded border p-4 shadow hover:bg-gray-100"
+              onClick={() => setSelectedDetail(event)}
+            >
+              <h3 className="text-lg font-semibold">{event.name}</h3>
+              <p className="text-sm">
+                <MapPin className="mr-1 inline-block h-4 w-4" />
+                {event.location}
+              </p>
+              <p className="font-bold">${event.price}</p>
+            </div>
+          ))}
+        </div>
         <div className="flex-1">
           <Map
             {...viewState}
             onMove={(evt) => setViewState(evt.viewState)}
             style={{ width: "100%", height: "100%" }}
-            mapStyle="mapbox://styles/mapbox/streets-v11"
+            mapStyle="mapbox://styles/kyouran/cm763uly101st01r5ae8r2yun"
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           >
             {filteredEvents.map((event) => (
@@ -140,27 +191,46 @@ export default function Dashboard() {
                 anchor="top"
               >
                 <div style={{ maxWidth: "200px" }}>
-                  <h3 className="text-lg font-semibold">{selectedEvent.name}</h3>
-                  <p className="text-sm">{selectedEvent.description}</p>
+                  <h3 className="text-md">{selectedEvent.name}</h3>
                 </div>
               </Popup>
             )}
           </Map>
         </div>
-        <div className="w-1/3 overflow-y-auto border-l p-4">
-          <h2 className="mb-4 text-xl font-bold">Events</h2>
-          {filteredEvents.map((event) => (
-            <div key={event.id} className="mb-4 rounded border p-4 shadow">
-              <h3 className="text-lg font-semibold">{event.name}</h3>
-              <p className="text-sm">
-                <MapPin className="mr-1 inline-block h-4 w-4" />
-                {event.location}
-              </p>
-              <p className="font-bold">${event.price}</p>
-            </div>
-          ))}
-        </div>
       </div>
+      <Dialog open={!!selectedDetail} onOpenChange={(open) => { if(!open) setSelectedDetail(null) }}>
+        <DialogContent className="overflow-y-auto  max-h-[calc(100vh-200px)]">
+          <DialogHeader>
+            <div className="flex items-center w-full">
+              <img
+                src={selectedDetail?.image_url}
+                alt={selectedDetail?.name}
+                className="mr-2 w-8 h-8 rounded-full"
+              />
+              <DialogTitle className="whitespace-normal break-words">
+                {selectedDetail?.name}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="whitespace-normal break-words">
+              {selectedDetail?.description}
+            </DialogDescription>
+          </DialogHeader>
+          {/* Removed large event image */}
+          <p className="mb-2 text-sm flex items-center">
+            <MapPin className="mr-1 inline-block h-4 w-4" />
+            {selectedDetail?.location}
+          </p>
+          <p className="font-bold">${selectedDetail?.price}</p>
+          <DialogFooter>
+            <div className="flex w-full justify-between">
+              <Button asChild variant="outline">
+                <a href={selectedDetail?.url} target="_blank" rel="noopener noreferrer">Sign up here</a>
+              </Button>
+              <Button onClick={() => setSelectedDetail(null)}>Close</Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
