@@ -1,129 +1,160 @@
 import { useEffect, useState } from 'react';
-import "./App.css"
-
-// Predefined fake events dictionary keyed by subreddit name.
-const eventsBySubreddit = {
-  reactjs: [
-    { name: "React Meetup", date: "2025-11-01", location: "New York", attendees: 120 },
-    { name: "Hooks Workshop", date: "2025-12-05", location: "San Francisco", attendees: 80 }
-  ],
-  warthunder: [
-    { name: "JS Conference", date: "2025-10-20", location: "Los Angeles", attendees: 200 },
-    { name: "ECMAScript Meetup", date: "2025-11-15", location: "Chicago", attendees: 50 }
-  ],
-  gaming: [
-    { name: "Gaming Expo", date: "2025-12-10", location: "Las Vegas", attendees: 300 }
-  ]
-};
+import supabase from './config/supabase';
+import { MapPin, Calendar, Sun, Moon } from 'lucide-react';
+import './App.css';
 
 function App() {
   const [subreddit, setSubreddit] = useState('');
   const [events, setEvents] = useState([]);
-  const [tabId, setTabId] = useState()
+  const [tabId, setTabId] = useState(null);
+  const [darkMode, setDarkMode] = useState(false);
 
-  // Get the active tab URL and extract the subreddit (if present)
   useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (tabs[0]?.url) {
         const url = tabs[0].url;
         const match = url.match(/reddit\.com\/r\/([^/]+)/);
         if (match && match[1]) {
-          setSubreddit(match[1]);
-          setEvents(eventsBySubreddit[match[1].toLowerCase()] || []);
+          const subredditName = match[1];
+          setSubreddit(subredditName);
+          await fetchEventsForSubreddit(subredditName);
+          recordRequest(subredditName);
         }
         setTabId(tabs[0].id);
       }
     });
   }, []);
 
-  // Function to inject "Hello World" banner into the active tab
-  const handleEventClick = (event) => {
-    if (tabId === null) {
-      console.warn('Tab ID not available');
+  async function fetchEventsForSubreddit(subredditName) {
+    const { data: subredditData, error: subredditError } = await supabase
+      .from('subreddits')
+      .select('id')
+      .eq('name', subredditName)
+      .single();
+
+    if (subredditError || !subredditData) {
+      console.error('Error fetching subreddit id:', subredditError);
+      return;
+    }
+    const subredditId = subredditData.id;
+    console.log('subredditId' + subredditId);
+
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('subreddit_categories')
+      .select('category_id')
+      .eq('subreddit_id', subredditId)
+      .single();
+
+    if (categoryError || !categoryData) {
+      console.error('Error fetching category id:', categoryError);
+      return;
+    }
+    const categoryId = categoryData.category_id;
+    console.log('meowmeow' + categoryId);
+
+    const { data: categoryEventsData, error: categoryEventsError } = await supabase
+      .from('category_events')
+      .select('event_url')
+      .eq('category_id', categoryId);
+
+    if (categoryEventsError || !categoryEventsData || categoryEventsData.length === 0) {
+      console.error('Error fetching event URLs:', categoryEventsError);
       return;
     }
 
-    // This function is injected into the page.
-    function injectEventContent(eventDetails) {
-      // Remove any existing injected event (if any)
-      const existing = document.getElementById('reddit-event');
-      if (existing) {
-        existing.remove();
-      }
+    const eventUrls = categoryEventsData.map(item => item.event_url);
+    console.log('eventUrls', eventUrls);
 
-      // Create the container for our injected Reddit-like post
-      const container = document.createElement('div');
-      container.id = 'reddit-event';
-      container.style.border = "1px solid #ccc";
-      container.style.borderRadius = "8px";
-      container.style.padding = "12px";
-      container.style.margin = "10px 0";
-      container.style.backgroundColor = "#fff";
-      container.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+    const { data: eventDetailsData, error: eventDetailsError } = await supabase
+      .from('events')
+      .select('datetime, address, name, url')
+      .in('url', eventUrls);
 
-      // Create the HTML content for the Reddit post appearance
-      container.innerHTML = `
-        <div class="iframe-container">
-          <iframe 
-            src="https://hack-o-mania-ongod.vercel.app/" 
-            style="border: none; width: 100%; height: 100%;"
-          ></iframe>
-        </div>
-        `;
-
-      // Add this CSS to your stylesheet
-      const style = document.createElement('style');
-      style.textContent = `
-          .iframe-container {
-            position: relative;
-            width: 100%;
-            height: min(800px, 90vh);
-            overflow: hidden;
-          }
-
-          .iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-          }
-        `;
-      document.head.appendChild(style);
-
-      // Look for the target element; here we're following the original pattern.
-      const loader = document.querySelector('shreddit-async-loader[bundlename="navigation_links"]');
-      if (loader) {
-        loader.insertAdjacentElement('afterend', container);
-      } else {
-        console.warn('shreddit-async-loader element not found');
-      }
+    if (eventDetailsError || !eventDetailsData || eventDetailsData.length === 0) {
+      console.error('Error fetching event details:', eventDetailsError);
+      return;
     }
 
-    // Execute the script using chrome.scripting.executeScript and pass event details as an argument.
-    chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      world: 'MAIN',
-      func: injectEventContent,
-      args: [event]
-    })
-      .then(() => console.log('Event content injection successful'))
-      .catch((err) => console.error('Failed to inject event content:', err));
+    console.log('event details:', eventDetailsData);
+    setEvents(eventDetailsData);
+  }
+
+
+  async function recordRequest(subredditName) {
+    const { data: subredditData, error: subredditError } = await supabase
+      .from('subreddits')
+      .select('id')
+      .eq('name', subredditName)
+      .single();
+
+    if (subredditError || !subredditData) {
+      console.error('Error fetching subreddit id:', subredditError);
+      return;
+    }
+
+    const subredditId = subredditData.id;
+
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      const ipInfo = await res.json();
+      const ipAddress = ipInfo.ip;
+      const userLocation = ipInfo.city;
+
+      const sgTime = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore" })
+      );
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('requests')
+        .insert([
+          {
+            ip_address: ipAddress,
+            subreddit_id: subredditId,
+            user_location: userLocation,
+            created_at: sgTime.toISOString(),
+          },
+        ]);
+
+      if (insertError) {
+        console.error('Error inserting request:', insertError);
+      } else {
+        console.log('Request recorded:', insertData);
+      }
+    } catch (err) {
+      console.error('Error fetching IP information:', err);
+    }
+  }
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    document.body.classList.toggle('dark');
   };
 
+  async function handleEventClick(event) {
+    if (!event.event_url) {
+      console.error('No event_url found for this event');
+      return;
+    }
+    chrome.tabs.create({ url: event.event_url }, () =>
+      console.log('Opened event in new tab:', event.event_url)
+    );
+  }
+
   return (
-    <div className="app-container">
-      <a
-        href="https://hack-o-mania-ongod.vercel.app/register-event"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <button
-          className="mb-3 relative px-6 py-3 bg-blue-200 text-white font-bold text-xl rounded-xl hover:bg-blue-700 transition duration-300 shadow-lg before:absolute before:inset-0 before:bg-gray-800 before:rounded-xl before:z-0"
+    <div className={`app-container ${darkMode ? 'dark' : ''}`}>
+      <div className="header">
+        <a
+          href="https://hack-o-mania-ongod.vercel.app/register-event"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <span className="relative z-10">Add Event</span>
+          <button className="add-event-btn">Add Event</button>
+        </a>
+        <button className="theme-toggle" onClick={toggleDarkMode}>
+          {darkMode ? <Sun size={24} /> : <Moon size={24} />}
         </button>
-      </a>
+      </div>
+
       <h1 className="title">Subreddit Events</h1>
       {subreddit ? (
         <>
@@ -139,9 +170,12 @@ function App() {
                   className="event-card"
                 >
                   <h2 className="event-title">{ev.name}</h2>
-                  <p><strong>Date:</strong> {ev.date}</p>
-                  <p><strong>Location:</strong> {ev.location}</p>
-                  <p><strong>Attendees:</strong> {ev.attendees}</p>
+                  <p>
+                    <strong>Date:</strong> {ev.datetime}
+                  </p>
+                  <p>
+                    <strong>Location:</strong> {ev.address}
+                  </p>
                 </div>
               ))}
             </div>

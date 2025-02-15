@@ -47,7 +47,7 @@ function injectEventContent() {
           .iframe-container {
             position: relative;
             width: 100%;
-            height: min(800px, 90vh);
+            height: min(400px, 90vh);
             overflow: hidden;
           }
           .iframe-container iframe {
