@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Reddit Events Extension",
   "version": "1.0.0",
-  "description": "Displays fake events based on the subreddit and injects a Hello World banner.",
+  "description": "Displays fake events based on the subreddit and injects a map automatically.",
   "action": {
     "default_popup": "index.html"
   },
@@ -12,6 +12,13 @@
     "activeTab"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "*://*.reddit.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.reddit.com/r/*"],
+      "js": ["contentScript.js"],
+      "run_at": "document_end"
+    }
   ]
 }
