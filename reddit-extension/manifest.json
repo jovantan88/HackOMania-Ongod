@@ -1,0 +1,10 @@
+{
+    "manifest_version": 2,
+    "name": "Next.js Hello World Extension",
+    "version": "1.0",
+    "description": "A simple Hello World extension built with Next.js",
+    "browser_action": {
+      "default_popup": "out/index.html"
+    },
+    "content_security_policy": "script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'self';"
+  }
