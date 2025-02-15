@@ -58,7 +58,7 @@ export default function Dashboard() {
       supabase.auth.signInWithOAuth({
         provider: 'github',
         options: {
-          redirectTo: `${location.origin}/auth/callback`,
+          redirectTo: `${location.origin}/api/auth/callback`,
         },
       });
     }
