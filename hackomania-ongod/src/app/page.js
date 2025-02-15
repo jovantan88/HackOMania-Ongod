@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { MapPin, Search, Calendar } from 'lucide-react' // Added Calendar icon
+import { MapPin, Search, Calendar } from 'lucide-react'
 import Map, { Marker } from "react-map-gl/mapbox";
-import { Popup } from "react-map-gl/mapbox";
+import { Popup, FlyToInterpolator } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css"
 import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
@@ -41,7 +41,8 @@ export default function Dashboard() {
     endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)),
     key: 'selection'
   }])
-  const [showCalendar, setShowCalendar] = React.useState(false) // New state for toggling calendar
+  const [showCalendar, setShowCalendar] = React.useState(false)
+  const mapRef = React.useRef(null);
   const [viewState, setViewState] = React.useState({
     longitude: 103.8198,
     latitude: 1.3521,
@@ -52,8 +53,35 @@ export default function Dashboard() {
   const [selectedDetail, setSelectedDetail] = React.useState(null)
   const [session, setSession] = React.useState(null);
 
+  // Function to handle hover on event card
+  const handleEventHover = (event) => {
+    if (!mapRef.current) return;
+
+    mapRef.current.getMap().flyTo({
+      center: event.coordinates,
+      zoom: 13,
+      duration: 800,
+      essential: true
+    });
+
+    setSelectedEvent(event);
+  };
+
+  // Function to handle mouse leave
+  const handleEventLeave = () => {
+    if (!mapRef.current) return;
+
+    mapRef.current.getMap().flyTo({
+      center: [103.8198, 1.3521],
+      zoom: 11.5,
+      duration: 800,
+      essential: true
+    });
+
+    setSelectedEvent(null);
+  };
+
   const loginWithGitHub = () => {
-    // Only attempt login when not already logged in.
     if (!session) {
       supabase.auth.signInWithOAuth({
         provider: 'github',
@@ -65,7 +93,6 @@ export default function Dashboard() {
   };
 
   React.useEffect(() => {
-    // Check if the user is logged in
     async function fetchSession() {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
@@ -93,11 +120,11 @@ export default function Dashboard() {
   }, [])
 
   const filteredEvents = events.filter((event) => {
-    if (!event) return false; // Skip null events
+    if (!event) return false;
     const matchesSearch = (event.name || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPrice =
       priceFilter === "" ||
-      priceFilter === "all" || // Added "all" condition
+      priceFilter === "all" ||
       (priceFilter === "free" && event.price == 0) ||
       (priceFilter === "under100" && event.price < 100) ||
       (priceFilter === "over100" && event.price >= 100)
@@ -112,7 +139,6 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen flex-col relative">
-      {/* GitHub button displays status based on session */}
       <div className="absolute top-0 right-0 m-4 z-20">
         {session ? (
           <Button variant="outline" disabled>Logged in</Button>
@@ -126,8 +152,14 @@ export default function Dashboard() {
           {filteredEvents.map((event, index) => (
             <div
               key={`event-list-${event.id}-${index}`}
+<<<<<<< Updated upstream
               className="cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100"
+=======
+              className="mb-4 cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100 transition-colors duration-200"
+>>>>>>> Stashed changes
               onClick={() => setSelectedDetail(event)}
+              onMouseEnter={() => handleEventHover(event)}
+              onMouseLeave={handleEventLeave}
             >
               <div className="flex flex-row items-center justify-between gap-4">
                 <div className="flex flex-col">
@@ -136,10 +168,16 @@ export default function Dashboard() {
                     <MapPin className="mr-1 inline-block h-4 w-4" />
                     {event.location}
                   </p>
-                  {/* Added date display for each event */}
                   <div>
+<<<<<<< Updated upstream
                     <p className="text-xs text-gray-500 float-start text-bottom">{new Date(event.date).toDateString()}</p>
                     <p className="text-xs font-bold float-end">{event.price === 0 ? "Free" : `$${event.price}`}</p>
+=======
+                    <p className="text-xs text-gray-500 float-start text-bottom">
+                      {new Date(event.date).toDateString()}
+                    </p>
+                    <p className="text-xs font-bold float-end">${event.price}</p>
+>>>>>>> Stashed changes
                   </div>
                 </div>
                 <img
@@ -174,15 +212,15 @@ export default function Dashboard() {
                   <SelectItem value="over100">$100 and above</SelectItem>
                 </SelectContent>
               </Select>
-              {/* Removed date input fields */}
             </div>
             <a href={`/register-event`}>
-              <Button>Add event</Button></a>
+              <Button>Add event</Button>
+            </a>
           </div>
           <Map
+            ref={mapRef}
             {...viewState}
-            onMove={(evt) => setViewState(evt.viewState)}
-            // style={{ width: "100%", height: "100%" }}
+            onMove={evt => setViewState(evt.viewState)}
             mapStyle="mapbox://styles/kyouran/cm763uly101st01r5ae8r2yun"
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           >
@@ -201,7 +239,9 @@ export default function Dashboard() {
                     height: "40px",
                     borderRadius: "50%",
                     cursor: "pointer",
-                    border: "2px solid black" // Added border
+                    border: "2px solid black",
+                    transform: selectedEvent?.id === event.id ? "scale(1.2)" : "scale(1)",
+                    transition: "transform 0.3s ease-in-out"
                   }}
                   onClick={() => setSelectedEvent(event)}
                 />
@@ -221,7 +261,6 @@ export default function Dashboard() {
               </Popup>
             )}
           </Map>
-          {/* Calendar Button Overlay */}
           <div style={{
             position: "absolute",
             bottom: "20px",
@@ -232,7 +271,6 @@ export default function Dashboard() {
               <Calendar className="w-5 h-5" />
             </Button>
           </div>
-          {/* Conditionally render DateRange overlay */}
           {showCalendar && (
             <div style={{
               position: "absolute",
@@ -260,7 +298,7 @@ export default function Dashboard() {
         </div>
       </div>
       <Dialog open={!!selectedDetail} onOpenChange={(open) => { if (!open) setSelectedDetail(null) }}>
-        <DialogContent className="overflow-y-auto  max-h-[calc(100vh-200px)]">
+        <DialogContent className="overflow-y-auto max-h-[calc(100vh-200px)]">
           <DialogHeader>
             <div className="flex items-center w-full">
               <img
@@ -275,12 +313,10 @@ export default function Dashboard() {
             <DialogDescription className="whitespace-normal break-words">
               {selectedDetail?.description}
             </DialogDescription>
-            {/* Added datetime display */}
             <p className="text-xs text-gray-500">
               {selectedDetail?.date && `Date: ${selectedDetail.date}`}
             </p>
           </DialogHeader>
-          {/* Removed large event image */}
           <p className="mb-2 text-sm flex items-center">
             <MapPin className="mr-1 inline-block h-4 w-4" />
             {selectedDetail?.location}
