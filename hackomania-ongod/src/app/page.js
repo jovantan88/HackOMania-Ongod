@@ -191,13 +191,13 @@ export default function Dashboard() {
         </div>
         <div className="flex-1 relative">
           <div className="p-4 absolute top-0 left-0 w-full z-10 flex flex-row gap-2">
-            <Input
+            {/* <Input
               type="search"
               placeholder="Search events..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-[300px] text-xl"
-            />
+            /> */}
             <div className="flex items-center space-x-2">
               <Select value={priceFilter} onValueChange={setPriceFilter}>
                 <SelectTrigger className="w-[180px]">
@@ -296,7 +296,7 @@ export default function Dashboard() {
         </div>
       </div>
       <Dialog open={!!selectedDetail} onOpenChange={(open) => { if (!open) setSelectedDetail(null) }}>
-        <DialogContent className="overflow-y-auto max-h-[calc(100vh-200px)]">
+        <DialogContent className="overflow-y-auto max-h-[calc(100vh-50px)]">
           <DialogHeader>
             <div className="flex items-center w-full">
               <img
