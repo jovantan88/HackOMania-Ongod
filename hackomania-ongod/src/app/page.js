@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { MapPin, Search, Calendar } from 'lucide-react'
+import { MapPin, Search, Calendar, Sun, Moon, Github, Plus } from 'lucide-react'
 import Map, { Marker } from "react-map-gl/mapbox";
 import { Popup, FlyToInterpolator } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css"
@@ -52,6 +52,11 @@ export default function Dashboard() {
   const [selectedEvent, setSelectedEvent] = React.useState(null)
   const [selectedDetail, setSelectedDetail] = React.useState(null)
   const [session, setSession] = React.useState(null);
+  const [darkMode, setDarkMode] = React.useState(false)
+
+  const mapStyle = darkMode 
+    ? "mapbox://styles/kyouran/cm76pavwu00kq01qv61yu5iid"
+    : "mapbox://styles/kyouran/cm763uly101st01r5ae8r2yun"
 
   // Function to handle hover on event card
   const handleEventHover = (event) => {
@@ -147,192 +152,216 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen flex-col relative">
-      <div className="absolute top-0 right-0 m-4 z-20">
-        {session ? (
-          <Button variant="outline" disabled>Logged in</Button>
-        ) : (
-          <Button onClick={loginWithGitHub} variant="outline">Sign up with GitHub</Button>
-        )}
-      </div>
-      <div className="flex flex-1 relative">
-        <div className="w-1/2 max-w-[500px] h-screen overflow-y-scroll border-l">
-          <h2 className="text-xl font-bold p-4">Events</h2>
-          {filteredEvents.map((event, index) => (
-            <div
-              key={`event-list-${event.id}-${index}`}
-              className="cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => setSelectedDetail(event)}
-              onMouseEnter={() => handleEventHover(event)}
-              onMouseLeave={handleEventLeave}
-            >
-              <div className="flex flex-row items-center justify-between gap-4">
-                <div className="flex flex-col">
-                  <h3 className="text-lg font-semibold">{event.name}</h3>
-                  <p className="text-sm">
-                    <MapPin className="mr-1 inline-block h-4 w-4" />
-                    {event.location}
-                  </p>
-                  <div>
-                    <p className="text-xs text-gray-500 float-start text-bottom">{new Date(event.date).toDateString()}</p>
-                    <p className="text-xs font-bold float-end">{event.price === 0 ? "Free" : `$${event.price}`}</p>
-                  </div>
-                </div>
-                <img
-                  src={event.image_url}
-                  width={150}
-                  height={80}
-                  alt="Picture of the author"
-                  className="rounded"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="flex-1 relative">
-          <div className="p-4 absolute top-0 left-0 w-full z-10 flex flex-row gap-2">
-            {/* <Input
-              type="search"
-              placeholder="Search events..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-[300px] text-xl"
-            /> */}
-            <div className="flex items-center space-x-2">
-              <Select value={priceFilter} onValueChange={setPriceFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by price" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All prices</SelectItem>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="under100">Under $100</SelectItem>
-                  <SelectItem value="over100">$100 and above</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <a href={`/register-event`}>
-              <Button>Add event</Button>
-            </a>
-          </div>
-          <Map
-            ref={mapRef}
-            {...viewState}
-            onMove={evt => setViewState(evt.viewState)}
-            mapStyle="mapbox://styles/kyouran/cm763uly101st01r5ae8r2yun"
-            mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
-          >
-            {filteredEvents.map((event, index) => (
-              <Marker
-                key={`marker-${event.id}-${index}`}
-                longitude={event.coordinates[0]}
-                latitude={event.coordinates[1]}
-                anchor="bottom"
-              >
-                <img
-                  src={event.image_url}
-                  alt={event.name}
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
-                    cursor: "pointer",
-                    border: "2px solid black",
-                    transform: selectedEvent?.id === event.id ? "scale(1.2)" : "scale(1)",
-                    transition: "transform 0.3s ease-in-out"
-                  }}
-                  onClick={() => setSelectedEvent(event)}
-                />
-              </Marker>
-            ))}
-            {selectedEvent && (
-              <Popup
-                longitude={selectedEvent.coordinates[0]}
-                latitude={selectedEvent.coordinates[1]}
-                closeOnClick={false}
-                onClose={() => setSelectedEvent(null)}
-                anchor="top"
-              >
-                <div style={{ maxWidth: "200px" }}>
-                  <h3 className="text-md">{selectedEvent.name}</h3>
-                </div>
-              </Popup>
-            )}
-          </Map>
-          <div style={{
-            position: "absolute",
-            bottom: "20px",
-            right: "20px",
-            zIndex: 10
-          }}>
-            <Button onClick={() => setShowCalendar(prev => !prev)} variant="outline">
-              <Calendar className="w-5 h-5" />
+    <div className={darkMode ? "dark" : ""}>
+      <div className="flex h-screen flex-col relative bg-white dark:bg-gray-900 text-black dark:text-white">
+        <div className="absolute top-0 right-0 m-4 z-20 flex items-center space-x-2">
+          {session ? (
+            <Button variant="outline" disabled>Logged in</Button>
+          ) : (
+            <Button onClick={loginWithGitHub} variant="outline">
+              Sign up with <Github className="w-4 h-4 inline-block" />
             </Button>
+          )}
+          <Button variant="outline" onClick={() => setDarkMode(!darkMode)}>
+            {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          </Button>
+        </div>
+        <div className="flex flex-1 relative">
+          <div className="w-1/2 max-w-[500px] h-screen overflow-y-scroll border-l custom-scrollbar">
+            <h2 className="text-xl font-bold p-4">Events</h2>
+            {filteredEvents.map((event, index) => (
+              <div
+                key={`event-list-${event.id}-${index}`}
+                className="cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+                onClick={() => setSelectedDetail(event)}
+                onMouseEnter={() => handleEventHover(event)}
+                onMouseLeave={handleEventLeave}
+              >
+                <div className="flex flex-row items-center justify-between gap-4">
+                  <div className="flex flex-col">
+                    <h3 className="text-lg font-semibold">{event.name}</h3>
+                    <p className="text-sm">
+                      <MapPin className="mr-1 inline-block h-4 w-4" />
+                      {event.location}
+                    </p>
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 float-start text-bottom">{new Date(event.date).toDateString()}</p>
+                      <p className="text-xs font-bold float-end">{event.price === 0 ? "Free" : `$${event.price}`}</p>
+                    </div>
+                  </div>
+                  <img
+                    src={event.image_url}
+                    width={150}
+                    height={80}
+                    alt="Picture of the author"
+                    className="rounded"
+                  />
+                </div>
+              </div>
+            ))}
           </div>
-          {showCalendar && (
+          <div className="flex-1 relative">
+            <div className="p-4 absolute top-0 left-0 w-full z-10 flex flex-row gap-2">
+              {/* <Input
+                type="search"
+                placeholder="Search events..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-[300px] text-xl"
+              /> */}
+              <div className="flex items-center space-x-2">
+                <Select value={priceFilter} onValueChange={setPriceFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by price" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All prices</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="under100">Under $100</SelectItem>
+                    <SelectItem value="over100">$100 and above</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <a href={`/register-event`}>
+                <Button><Plus className="w-4 h-4 mr-1" /> event</Button>
+              </a>
+            </div>
+            <Map
+              ref={mapRef}
+              {...viewState}
+              onMove={evt => setViewState(evt.viewState)}
+              mapStyle={mapStyle}
+              mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+            >
+              {filteredEvents.map((event, index) => (
+                <Marker
+                  key={`marker-${event.id}-${index}`}
+                  longitude={event.coordinates[0]}
+                  latitude={event.coordinates[1]}
+                  anchor="bottom"
+                >
+                  <img
+                    src={event.image_url}
+                    alt={event.name}
+                    style={{
+                      width: "40px",
+                      height: "40px",
+                      borderRadius: "50%",
+                      cursor: "pointer",
+                      border: "2px solid black",
+                      transform: selectedEvent?.id === event.id ? "scale(1.2)" : "scale(1)",
+                      transition: "transform 0.3s ease-in-out"
+                    }}
+                    onClick={() => setSelectedEvent(event)}
+                  />
+                </Marker>
+              ))}
+              {selectedEvent && (
+                <Popup
+                  longitude={selectedEvent.coordinates[0]}
+                  latitude={selectedEvent.coordinates[1]}
+                  closeOnClick={false}
+                  onClose={() => setSelectedEvent(null)}
+                  anchor="top"
+                >
+                  <div style={{ maxWidth: "200px" }}>
+                    <h3 className="text-md">{selectedEvent.name}</h3>
+                  </div>
+                </Popup>
+              )}
+            </Map>
             <div style={{
               position: "absolute",
-              bottom: "70px",
+              bottom: "20px",
               right: "20px",
-              background: "white",
-              padding: "10px",
-              borderRadius: "5px",
-              boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
               zIndex: 10
             }}>
-              <DateRange
-                editableDateInputs={true}
-                onChange={item => setDateRange([item.selection])}
-                moveRangeOnFirstSelection={false}
-                ranges={dateRange}
-              />
-              <div className="mt-2 flex justify-end">
-                <Button onClick={() => setShowCalendar(false)} variant="outline" size="sm">
-                  Close
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-      <Dialog open={!!selectedDetail} onOpenChange={(open) => { if (!open) setSelectedDetail(null) }}>
-        <DialogContent className="overflow-y-auto max-h-[calc(100vh-50px)]">
-          <DialogHeader>
-            <div className="flex items-center w-full">
-              <img
-                src={selectedDetail?.image_url}
-                alt={selectedDetail?.name}
-                className="mr-2 w-8 h-8 rounded-full"
-              />
-              <DialogTitle className="whitespace-normal break-words">
-                {selectedDetail?.name}
-              </DialogTitle>
-            </div>
-            <DialogDescription className="whitespace-normal break-words">
-              {selectedDetail?.description}
-            </DialogDescription>
-            <p className="text-xs text-gray-500">
-              {selectedDetail?.date && `Date: ${selectedDetail.date}`}
-            </p>
-          </DialogHeader>
-          <p className="mb-2 text-sm flex items-center">
-            <MapPin className="mr-1 inline-block h-4 w-4" />
-            {selectedDetail?.location}
-          </p>
-          <p className="font-bold">{selectedDetail?.price === 0 ? "Free" : `$${selectedDetail?.price}`}</p>
-          <DialogFooter>
-            <div className="flex w-full justify-between">
-              <Button
-                variant="outline"
-                onClick={() => handleEventClick(selectedDetail?.url)}
-              >
-                Sign up here
+              <Button onClick={() => setShowCalendar(prev => !prev)} variant="outline">
+                <Calendar className="w-5 h-5" />
               </Button>
-              <Button onClick={() => setSelectedDetail(null)}>Close</Button>
             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            {showCalendar && (
+              <div style={{
+                position: "absolute",
+                bottom: "70px",
+                right: "20px",
+                background: "white",
+                padding: "10px",
+                borderRadius: "5px",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                zIndex: 10
+              }}>
+                <DateRange
+                  editableDateInputs={true}
+                  onChange={item => setDateRange([item.selection])}
+                  moveRangeOnFirstSelection={false}
+                  ranges={dateRange}
+                />
+                <div className="mt-2 flex justify-end">
+                  <Button onClick={() => setShowCalendar(false)} variant="outline" size="sm">
+                    Close
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <Dialog open={!!selectedDetail} onOpenChange={(open) => { if (!open) setSelectedDetail(null) }}>
+          <DialogContent className="overflow-y-auto max-h-[calc(100vh-50px)]">
+            <DialogHeader>
+              <div className="flex items-center w-full">
+                <img
+                  src={selectedDetail?.image_url}
+                  alt={selectedDetail?.name}
+                  className="mr-2 w-8 h-8 rounded-full"
+                />
+                <DialogTitle className="whitespace-normal break-words">
+                  {selectedDetail?.name}
+                </DialogTitle>
+              </div>
+              <DialogDescription className="whitespace-normal break-words">
+                {selectedDetail?.description}
+              </DialogDescription>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {selectedDetail?.date && `Date: ${selectedDetail.date}`}
+              </p>
+            </DialogHeader>
+            <p className="mb-2 text-sm flex items-center">
+              <MapPin className="mr-1 inline-block h-4 w-4" />
+              {selectedDetail?.location}
+            </p>
+            <p className="font-bold">{selectedDetail?.price === 0 ? "Free" : `$${selectedDetail?.price}`}</p>
+            <DialogFooter>
+              <div className="flex w-full justify-between">
+                <Button
+                  variant="outline"
+                  onClick={() => handleEventClick(selectedDetail?.url)}
+                >
+                  Sign up here
+                </Button>
+                <Button onClick={() => setSelectedDetail(null)}>Close</Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background-color: #e5e7eb;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #888;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-track {
+          background-color: #2d2d2d;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #444;
+        }
+      `}</style>
     </div>
   )
 }
