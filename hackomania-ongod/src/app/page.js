@@ -43,9 +43,9 @@ export default function Dashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
   const [dateRange, setDateRange] = React.useState([{
-      startDate: new Date(), 
-      endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)),
-      key: 'selection'
+    startDate: new Date(),
+    endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)),
+    key: 'selection'
   }])
   const [showCalendar, setShowCalendar] = React.useState(false) // New state for toggling calendar
   const [viewState, setViewState] = React.useState({
@@ -61,7 +61,7 @@ export default function Dashboard() {
     async function fetchEvents() {
       const result = await getAllEvents()
       console.log("getAllEvents result:", result)
-      if(result.success && result.events) {
+      if (result.success && result.events) {
         const transformed = result.events.map(event => ({
           id: event.id,
           name: event.name,
@@ -96,51 +96,21 @@ export default function Dashboard() {
     return matchesSearch && matchesPrice && matchesDate
   })
 
+
+  //   < div className = "flex items-center justify-between border-b p-4" >
+  //   <div>
+  //     </div>
+  // </div >
+
   return (
     <div className="flex h-screen flex-col">
-      <div className="flex items-center justify-between border-b p-4">
-        <div className="flex items-center space-x-2">
-          <Input
-            type="search"
-            placeholder="Search events..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-[300px]"
-          />
-          <Select value={priceFilter} onValueChange={setPriceFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Filter by price" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All prices</SelectItem>
-              <SelectItem value="under100">Under $100</SelectItem>
-              <SelectItem value="over100">$100 and above</SelectItem>
-            </SelectContent>
-          </Select>
-          {/* Removed date input fields */}
-        </div>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button>Add Existing Event</Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Add Existing Event</SheetTitle>
-              <SheetDescription>
-                This action adds an existing event to the dashboard.
-              </SheetDescription>
-            </SheetHeader>
-            {/* Add form fields here for adding an existing event */}
-          </SheetContent>
-        </Sheet>
-      </div>
       <div className="flex flex-1 relative">
-        <div className="w-1/3 overflow-y-auto border-l p-4">
-          <h2 className="mb-4 text-xl font-bold">Events</h2>
+        <div className="w-1/3 overflow-y-auto border-l">
+          <h2 className="text-xl font-bold p-4">Events</h2>
           {filteredEvents.map((event) => (
             <div
               key={event.id}
-              className="mb-4 cursor-pointer rounded border p-4 shadow hover:bg-gray-100"
+              className="mb-4 cursor-pointer rounded border-b p-4 hover:bg-gray-100"
               onClick={() => setSelectedDetail(event)}
             >
               <h3 className="text-lg font-semibold">{event.name}</h3>
@@ -154,11 +124,34 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-        <div className="flex-1">
+        <div className="flex-1 relative">
+          <div className="p-4 absolute top-0 left-0 w-full z-10 flex flex-row gap-2">
+            <Input
+              type="search"
+              placeholder="Search events..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-[300px] text-xl"
+            />
+            <div className="flex items-center space-x-2">
+              <Select value={priceFilter} onValueChange={setPriceFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by price" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All prices</SelectItem>
+                  <SelectItem value="under100">Under $100</SelectItem>
+                  <SelectItem value="over100">$100 and above</SelectItem>
+                </SelectContent>
+              </Select>
+              {/* Removed date input fields */}
+            </div>
+            <Button>Add event</Button>
+          </div>
           <Map
             {...viewState}
             onMove={(evt) => setViewState(evt.viewState)}
-            style={{ width: "100%", height: "100%" }}
+            // style={{ width: "100%", height: "100%" }}
             mapStyle="mapbox://styles/kyouran/cm763uly101st01r5ae8r2yun"
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           >
@@ -235,7 +228,7 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-      <Dialog open={!!selectedDetail} onOpenChange={(open) => { if(!open) setSelectedDetail(null) }}>
+      <Dialog open={!!selectedDetail} onOpenChange={(open) => { if (!open) setSelectedDetail(null) }}>
         <DialogContent className="overflow-y-auto  max-h-[calc(100vh-200px)]">
           <DialogHeader>
             <div className="flex items-center w-full">
