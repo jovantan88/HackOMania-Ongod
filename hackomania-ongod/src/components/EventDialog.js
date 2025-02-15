@@ -34,18 +34,18 @@ const Comment = ({ comment, onReply, session, comments, onDelete }) => {
       <div className="flex items-start gap-1">
         <div className="flex-1">
           <div className="flex items-center gap-1">
-            <p className="font-semibold text-sm">{comment.username}</p>
-            <p className="text-xs text-gray-500">
+            <p className="font-semibold text-sm dark:text-white">{comment.username}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {new Date(comment.created_at).toLocaleDateString()}
             </p>
           </div>
-          <p className="mt-0.5 text-sm">{comment.comment}</p>
+          <p className="mt-0.5 text-sm dark:text-gray-300">{comment.comment}</p>
           <div className="mt-1 flex gap-1">
             {session && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 text-xs"
+                className="h-6 px-2 text-xs dark:hover:bg-stone-800"
                 onClick={() => setShowReplyForm(!showReplyForm)}
               >
                 Reply
@@ -55,7 +55,7 @@ const Comment = ({ comment, onReply, session, comments, onDelete }) => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                className="h-6 px-2 text-xs text-red-600 hover:text-red-700 dark:hover:bg-stone-800"
                 onClick={() => onDelete(comment.id)}
               >
                 Delete
@@ -185,9 +185,9 @@ const CommentSection = ({ eventUrl, session }) => {
   const topLevelComments = comments.filter(comment => !comment.parent_comment_id);
 
   return (
-    <div className="h-full">
+    <div className="h-full dark:border-stone-700">
       <div className="px-4 pt-2">
-        <h3 className="text-lg font-semibold">Comments</h3>
+        <h3 className="text-lg font-semibold dark:text-white">Comments</h3>
       </div>
       <div className="h-[calc(100%-120px)] overflow-y-auto">
         <div className="ps-4 p-2">
@@ -212,18 +212,18 @@ const CommentSection = ({ eventUrl, session }) => {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder="Write a comment..."
-              className="flex-1 text-sm"
+              className="flex-1 text-sm dark:bg-stone-800 dark:border-stone-700"
             />
             <Button
               onClick={() => handleSubmitComment(newComment)}
               disabled={!newComment.trim()}
-              className="text-sm"
+              className="text-sm dark:bg-stone-800 dark:hover:bg-stone-700"
             >
               Post
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
             Please sign in to leave a comment.
           </p>
         )}
@@ -240,7 +240,7 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="overflow-hidden max-w-5xl max-h-[calc(100vh-50px)] flex flex-row justify-between grid grid-cols-2">
+      <DialogContent className="overflow-hidden max-w-5xl max-h-[calc(100vh-50px)] flex flex-row justify-between grid grid-cols-2 dark:bg-stone-900">
         <div className="overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center w-full">
@@ -249,24 +249,24 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session }) => {
                 alt={event?.name}
                 className="mr-2 w-8 h-8 rounded-full"
               />
-              <DialogTitle className="whitespace-normal break-words">
+              <DialogTitle className="whitespace-normal break-words dark:text-white">
                 {event?.name}
               </DialogTitle>
             </div>
-            <DialogDescription className="whitespace-normal break-words">
+            <DialogDescription className="whitespace-normal break-words dark:text-gray-400">
               {event?.description}
             </DialogDescription>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               {event?.date && new Date(event.date).toDateString()}
             </p>
           </DialogHeader>
 
           <div className="flex-1">
-            <p className="mb-2 text-sm flex items-center">
+            <p className="mb-2 text-sm flex items-center dark:text-gray-300">
               <MapPin className="mr-1 inline-block h-4 w-4" />
               {event?.location}
             </p>
-            <p className="font-bold">
+            <p className="font-bold dark:text-white">
               {event?.price === 0 ? "Free" : `$${event?.price}`}
             </p>
           </div>
