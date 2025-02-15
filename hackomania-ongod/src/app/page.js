@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { getAllEvents } from "@/actions/actions"
+import { getAllEvents, getSubredditEvents } from "@/actions/actions"
 
 import {
   Dialog,
@@ -116,7 +116,32 @@ export default function Dashboard() {
         setEvents(transformed)
       }
     }
-    fetchEvents()
+    async function fetchSubredditEvents(subreddit) {
+      const result = await getSubredditEvents(subreddit)
+      console.log("getSubredditEvents result:", result)
+      if (result.success && result.events) {
+        const transformed = result.events.map(event => ({
+          id: event.id,
+          name: event.title,
+          description: event.selftext,
+          location: event.location,
+          price: parseFloat(event.price),
+          coordinates: [event.lon, event.lat],
+          image_url: event.image_url,
+          url: event.url,
+          date: event.datetime
+        }))
+        setEvents(transformed)
+      }
+    }
+    // check for subreddit query param
+    const urlParams = new URLSearchParams(window.location.search)
+    const subreddit = urlParams.get('subreddit')
+    if (subreddit) {
+      fetchSubredditEvents(subreddit)
+    } else {
+      fetchEvents()
+    }
   }, [])
 
   const filteredEvents = events.filter((event) => {
