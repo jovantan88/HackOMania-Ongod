@@ -3,20 +3,6 @@ import supabase from './config/supabase';
 import { MapPin, Calendar, Sun, Moon } from 'lucide-react';
 import './App.css';
 
-const eventsBySubreddit = {
-  reactjs: [
-    { name: 'React Meetup', date: '2025-11-01', location: 'New York', attendees: 120 },
-    { name: 'Hooks Workshop', date: '2025-12-05', location: 'San Francisco', attendees: 80 }
-  ],
-  warthunder: [
-    { name: 'JS Conference', date: '2025-10-20', location: 'Los Angeles', attendees: 200 },
-    { name: 'ECMAScript Meetup', date: '2025-11-15', location: 'Chicago', attendees: 50 }
-  ],
-  gaming: [
-    { name: 'Gaming Expo', date: '2025-12-10', location: 'Las Vegas', attendees: 300 }
-  ]
-};
-
 function App() {
   const [subreddit, setSubreddit] = useState('');
   const [events, setEvents] = useState([]);
@@ -24,20 +10,75 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       if (tabs[0]?.url) {
         const url = tabs[0].url;
         const match = url.match(/reddit\.com\/r\/([^/]+)/);
         if (match && match[1]) {
           const subredditName = match[1];
           setSubreddit(subredditName);
-          setEvents(eventsBySubreddit[subredditName.toLowerCase()] || []);
+          await fetchEventsForSubreddit(subredditName);
           recordRequest(subredditName);
         }
         setTabId(tabs[0].id);
       }
     });
   }, []);
+
+  async function fetchEventsForSubreddit(subredditName) {
+    const { data: subredditData, error: subredditError } = await supabase
+      .from('subreddits')
+      .select('id')
+      .eq('name', subredditName)
+      .single();
+
+    if (subredditError || !subredditData) {
+      console.error('Error fetching subreddit id:', subredditError);
+      return;
+    }
+    const subredditId = subredditData.id;
+    console.log('subredditId' + subredditId);
+
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('subreddit_categories')
+      .select('category_id')
+      .eq('subreddit_id', subredditId)
+      .single();
+
+    if (categoryError || !categoryData) {
+      console.error('Error fetching category id:', categoryError);
+      return;
+    }
+    const categoryId = categoryData.category_id;
+    console.log('meowmeow' + categoryId);
+
+    const { data: categoryEventsData, error: categoryEventsError } = await supabase
+      .from('category_events')
+      .select('event_url')
+      .eq('category_id', categoryId);
+
+    if (categoryEventsError || !categoryEventsData || categoryEventsData.length === 0) {
+      console.error('Error fetching event URLs:', categoryEventsError);
+      return;
+    }
+
+    const eventUrls = categoryEventsData.map(item => item.event_url);
+    console.log('eventUrls', eventUrls);
+
+    const { data: eventDetailsData, error: eventDetailsError } = await supabase
+      .from('events')
+      .select('datetime, address, name, url')
+      .in('url', eventUrls);
+
+    if (eventDetailsError || !eventDetailsData || eventDetailsData.length === 0) {
+      console.error('Error fetching event details:', eventDetailsError);
+      return;
+    }
+
+    console.log('event details:', eventDetailsData);
+    setEvents(eventDetailsData);
+  }
+
 
   async function recordRequest(subredditName) {
     const { data: subredditData, error: subredditError } = await supabase
@@ -57,7 +98,7 @@ function App() {
       const res = await fetch('https://ipapi.co/json/');
       const ipInfo = await res.json();
       const ipAddress = ipInfo.ip;
-      const userLocation = ipInfo.city; 
+      const userLocation = ipInfo.city;
 
       const sgTime = new Date(
         new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore" })
@@ -89,72 +130,15 @@ function App() {
     document.body.classList.toggle('dark');
   };
 
-  const handleEventClick = (event) => {
-    if (tabId === null) {
-      console.warn('Tab ID not available');
+  async function handleEventClick(event) {
+    if (!event.event_url) {
+      console.error('No event_url found for this event');
       return;
     }
-
-    function injectEventContent(eventDetails) {
-      const existing = document.getElementById('reddit-event');
-      if (existing) {
-        existing.remove();
-      }
-
-      const container = document.createElement('div');
-      container.id = 'reddit-event';
-      container.style.border = '1px solid #ccc';
-      container.style.borderRadius = '12px';
-      container.style.padding = '16px';
-      container.style.margin = '10px 0';
-      container.style.backgroundColor = '#fff';
-      container.style.boxShadow = '0 4px 6px rgba(0,0,0,0.2)';
-
-      container.innerHTML = `
-        <div class="iframe-container">
-          <iframe 
-            src="https://hack-o-mania-ongod.vercel.app/" 
-            style="border: none; width: 100%; height: 100%;"
-          ></iframe>
-        </div>
-      `;
-
-      const style = document.createElement('style');
-      style.textContent = `
-          .iframe-container {
-            position: relative;
-            width: 100%;
-            height: min(400px, 90vh);
-            overflow: hidden;
-          }
-
-          .iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-          }
-      `;
-      document.head.appendChild(style);
-
-      const loader = document.querySelector('shreddit-async-loader[bundlename="navigation_links"]');
-      if (loader) {
-        loader.insertAdjacentElement('afterend', container);
-      } else {
-        console.warn('shreddit-async-loader element not found');
-      }
-    }
-
-    chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      world: 'MAIN',
-      func: injectEventContent,
-      args: [event]
-    })
-      .then(() => console.log('Event content injection successful'))
-      .catch((err) => console.error('Failed to inject event content:', err));
-  };
+    chrome.tabs.create({ url: event.event_url }, () =>
+      console.log('Opened event in new tab:', event.event_url)
+    );
+  }
 
   return (
     <div className={`app-container ${darkMode ? 'dark' : ''}`}>
@@ -186,9 +170,12 @@ function App() {
                   className="event-card"
                 >
                   <h2 className="event-title">{ev.name}</h2>
-                  <p><strong>Date:</strong> {ev.date}</p>
-                  <p><strong>Location:</strong> {ev.location}</p>
-                  <p><strong>Attendees:</strong> {ev.attendees}</p>
+                  <p>
+                    <strong>Date:</strong> {ev.datetime}
+                  </p>
+                  <p>
+                    <strong>Location:</strong> {ev.address}
+                  </p>
                 </div>
               ))}
             </div>
