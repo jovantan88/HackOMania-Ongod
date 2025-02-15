@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { supabase } from "../lib/supabase/supabaseClient";
+import { supabase } from "@/lib/supabase/supabaseClient";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const DEEPSEEK_URL = process.env.DEEPSEEK_URL || "";
@@ -98,7 +98,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
 async function searchWithGemini(url) {
   try {
-    
+
     const response = await fetch(url);
     const html = await response.text();
 
@@ -109,8 +109,8 @@ You are a web scraping assistant. Your task is to parse the provided webpage's H
  "title": "",
  "thumbnail_image_url": "",
  "description": "",
- "short_description": "", (summarise the description
- "datetime": "", (DD/MM/YYYY HH:MM:SS)
+ "short_description": "", (summarise the description）
+ "datetime": "", (MM/DD/YYYY HH:MM:SS)
  "latitude": ,
  "longitude": ,
  "address": "", (street address)
@@ -129,8 +129,7 @@ ${html}
 </web_data>`;
 
     const result = await model.generateContent(prompt);
-    // console.log(result.response.text());
-    
+
     let parsed = {};
     try {
       parsed = JSON.parse(result.response.text().replace(/^```json|```$/g, ""));
@@ -191,6 +190,29 @@ const eventSchema = z.object({
     }),
 });
 
+async function checkEventsByUrl(inputUrl) {
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select('*')
+      .filter('url', 'ilike', inputUrl.toLowerCase())
+      .is('name', null);
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      hasNullNames: data.length > 0,
+      matchingEvents: data,
+      count: data.length
+    };
+  } catch (error) {
+    console.error('Error checking events:', error.message);
+    throw error;
+  }
+}
+
 /**
  * Registers an event by validating the event link, extracting metadata from the page,
  * and saving it (with enriched metadata) to the database.
@@ -203,6 +225,8 @@ export async function registerEvent(prevState, formData) {
 
   try {
     const validatedData = eventSchema.parse({ eventLink });
+
+    const { hasNullNames, count } = await checkEventsByUrl(validatedData.eventLink);
 
     // // First, extract metadata from the HTML head.
     // const headMetadata = await extractFromHead(validatedData.eventLink);
@@ -220,41 +244,37 @@ export async function registerEvent(prevState, formData) {
     //   metadata = { ...headMetadata, ...deepSeekMetadata };
     // }
 
-    // Flash it
-    let metadata = await searchWithGemini(validatedData.eventLink);
+    if (hasNullNames || count === 0) {
 
-    const eventData = {
-      url: validatedData.eventLink,
-      datetime: metadata.datetime, // Expecting format: DD/MM/YYYY HH:MM:SS
-      address: metadata.address,
-      price: metadata.price !== undefined ? metadata.price : "0", // Use "0" if free
-      currency: metadata.currency || "SGD", // Default to SGD if unknown
-      lat: metadata.latitude !== undefined ? metadata.latitude : (metadata.lat || null),
-      lon: metadata.longitude !== undefined ? metadata.longitude : (metadata.lon || null),
-      country: metadata.country,
-      verified: false, // Default value (change as needed)
-      name: metadata.title, // Map "title" to the name column
-      description: metadata.description,
-      image_url: metadata.thumbnail_image_url,
-      short_description: metadata.short_description, // Should be a summary of description
-    };
-    
-    // Save the event and its metadata into the database.
-    const { data, error } = await supabase.from("events").insert([ eventData ]);
+      // Flash it
+      let metadata = await searchWithGemini(validatedData.eventLink);
 
-    if (error) {
-      console.error("Error saving event:", error);
-      return {
-        success: false,
-        message: "Failed to save event metadata.",
+      const eventData = {
+        url: validatedData.eventLink,
+        datetime: metadata.datetime, // Expecting format: MM/DD/YYYY HH:MM:SS
+        address: metadata.address,
+        price: metadata.price !== undefined ? metadata.price : "0", // Use "0" if free
+        currency: metadata.currency || "SGD", // Default to SGD if unknown
+        lat: metadata.latitude !== undefined ? metadata.latitude : (metadata.lat || null),
+        lon: metadata.longitude !== undefined ? metadata.longitude : (metadata.lon || null),
+        country: metadata.country,
+        verified: false, // Default value (change as needed)
+        name: metadata.title, // Map "title" to the name column
+        description: metadata.description,
+        image_url: metadata.thumbnail_image_url,
+        short_description: metadata.short_description, // Should be a summary of description
       };
-    }
 
-    console.log("Event registered:", validatedData.eventLink);
-    return {
-      success: true,
-      message: "Event registered successfully!",
-    };
+      // Save the event and its metadata into the database.
+      const { data, error } = await supabase.from("events").upsert([eventData]);
+      
+      console.log("Event registered:", validatedData.eventLink);
+      return {
+        success: true,
+        message: "Event registered successfully!",
+      };
+
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return {
