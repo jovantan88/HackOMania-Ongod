@@ -8,16 +8,14 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" });
 
 async function fetchCategories() {
-  const { data, error } = await supabase
-    .from("categories")
-    .select("name");
-  
+  const { data, error } = await supabase.from("categories").select("name");
+
   if (error) {
     console.error("Error fetching categories:", error);
     return [];
   }
-  
-  return data.map(category => category.name);
+
+  return data.map((category) => category.name);
 }
 
 async function getCategoryIds(categoryNames) {
@@ -25,12 +23,12 @@ async function getCategoryIds(categoryNames) {
     .from("categories")
     .select("id, name")
     .in("name", categoryNames);
-    
+
   if (error) {
     console.error("Error fetching category IDs:", error);
     return [];
   }
-  
+
   return data;
 }
 
@@ -74,7 +72,10 @@ ${html}
     try {
       parsed = JSON.parse(result.response.text().replace(/^```json|```$/g, ""));
     } catch (parseError) {
-      console.error("Failed to parse Gemini FLASH response as JSON:", parseError);
+      console.error(
+        "Failed to parse Gemini FLASH response as JSON:",
+        parseError
+      );
     }
     return parsed;
   } catch (error) {
@@ -120,9 +121,9 @@ ${subreddit.description}
 }
 
 async function insertCategoryEvents(eventUrl, categoryIds) {
-  const categoryEvents = categoryIds.map(categoryId => ({
-    event_url: eventUrl,  // Changed from event_id to event_url
-    category_id: categoryId
+  const categoryEvents = categoryIds.map((categoryId) => ({
+    event_url: eventUrl, // Changed from event_id to event_url
+    category_id: categoryId,
   }));
 
   // Delete existing category relationships for this event
@@ -160,9 +161,9 @@ async function checkEventsByUrl(inputUrl) {
   try {
     const { data, error } = await supabase
       .from("events")
-      .select('*')
-      .eq('url', inputUrl.toLowerCase())
-      .is('name', null);
+      .select("*")
+      .eq("url", inputUrl.toLowerCase())
+      .is("name", null);
 
     if (error) {
       throw error;
@@ -171,10 +172,10 @@ async function checkEventsByUrl(inputUrl) {
     return {
       hasNullNames: data.length > 0,
       matchingEvents: data,
-      count: data.length
+      count: data.length,
     };
   } catch (error) {
-    console.error('Error checking events:', error.message);
+    console.error("Error checking events:", error.message);
     throw error;
   }
 }
@@ -184,14 +185,19 @@ export async function registerEvent(prevState, formData) {
 
   try {
     const validatedData = eventSchema.parse({ eventLink });
-    const { hasNullNames, count } = await checkEventsByUrl(validatedData.eventLink);
+    const { hasNullNames, count } = await checkEventsByUrl(
+      validatedData.eventLink
+    );
 
     if (hasNullNames || count === 0) {
       // Fetch categories first
       const categories = await fetchCategories();
-      
+
       // Get metadata including categories from Gemini
-      const metadata = await searchWithGemini(validatedData.eventLink, categories);
+      const metadata = await searchWithGemini(
+        validatedData.eventLink,
+        categories
+      );
 
       const eventData = {
         url: validatedData.eventLink, // This is now the primary key
@@ -221,8 +227,8 @@ export async function registerEvent(prevState, formData) {
       if (metadata.categories) {
         // Get category IDs for the matched categories
         const categoryData = await getCategoryIds(metadata.categories);
-        const categoryIds = categoryData.map(cat => cat.id);
-        
+        const categoryIds = categoryData.map((cat) => cat.id);
+
         // Insert category-event relationships using the URL
         await insertCategoryEvents(validatedData.eventLink, categoryIds);
       }
@@ -248,9 +254,7 @@ export async function registerEvent(prevState, formData) {
 }
 
 export async function getAllEvents() {
-  const { data, error } = await supabase
-    .from("events")
-    .select(`
+  const { data, error } = await supabase.from("events").select(`
       *,
       category_events (
         categories (
@@ -266,6 +270,7 @@ export async function getAllEvents() {
   }
   return { success: true, events: data };
 }
+
 
 export async function getSubredditEvents(subreddit) {
   // fetch the subreddit from the database
@@ -419,3 +424,19 @@ export async function addSubreddit(subreddit) {
 
   return { success: true, data };
 }
+
+export async function trackEventClick(eventUrl, githubUsername) {
+  const { error } = await supabase.from("event_clicks").insert([
+    {
+      event_url: eventUrl,
+      username: githubUsername,
+    },
+  ]);
+
+  if (error) {
+    console.error("Error tracking event click:", error);
+    return { success: false, error };
+  }
+  return { success: true };
+}
+
