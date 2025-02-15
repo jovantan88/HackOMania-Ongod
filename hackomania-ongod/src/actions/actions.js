@@ -1,5 +1,11 @@
 "use server";
 
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+import { z } from "zod"
+=======
+>>>>>>> prettify-form
 import { z } from "zod";
 import { supabase } from "@/lib/supabase/supabaseClient";
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -106,6 +112,7 @@ async function searchWithGemini(url) {
 You are a web scraping assistant. Your task is to parse the provided webpage's HTML, available in <web_data>, to extract metadata. Only return the following fields as a JSON object: 
 <response_format>
 {
+<<<<<<< HEAD
  "title": "",
  "thumbnail_image_url": "",
  "description": "",
@@ -118,10 +125,35 @@ You are a web scraping assistant. Your task is to parse the provided webpage's H
  "price": , (0 if free)
  "currency" , (SGD if unknown)
 }
+=======
+  "event": {
+  "title": "",
+  "thumbnail_image_url": "",
+  "description": "",
+  "short_description": "", (summarise the description）
+  "datetime": "", (MM/DD/YYYY HH:MM:SS)
+  "latitude": ,
+  "longitude": ,
+  "address": "", (street address)
+  "country": "", (full name)
+  "price": , (0 if free)
+  "currency" , (SGD if unknown)
+  },
+  "categories": ["", ...] (select all applicable categories from the list of possible categories)
+}
+
+>>>>>>> prettify-form
 </response_format>
 if you cannot find any fields, return as null.
 
 do not include anything in your response other than the explicitly requested json.
+<<<<<<< HEAD
+=======
+
+<possible_categories>
+
+</possible_categories>
+>>>>>>> prettify-form
 </instruction>
 
 <web_data>
@@ -180,13 +212,26 @@ async function searchWithDeepSeek(url, missingFields) {
     return {};
   }
 }
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> prettify-form
 
 const eventSchema = z.object({
   eventLink: z
     .string()
     .url()
+<<<<<<< HEAD
     .refine((url) => url.includes("eventbrite.") || url.includes("lu.ma"), {
+=======
+<<<<<<< Updated upstream
+    .refine((url) => url.includes("eventbrite.com") || url.includes("lu.ma"), {
+>>>>>>> prettify-form
       message: "Only Eventbrite and Lu.ma links are allowed",
+=======
+    .refine((url) => url.includes("eventbrite.") || url.includes("lu.ma"), {
+      message: "Only eventbrite and lu.ma links are allowed",
+>>>>>>> Stashed changes
     }),
 });
 

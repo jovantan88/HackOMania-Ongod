@@ -24,7 +24,7 @@ export default function RegisterEventForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
         <Label htmlFor="eventLink" className="text-lg">
-          Event Link
+          Event link
         </Label>
         <div className="relative">
           <LinkIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -41,7 +41,7 @@ export default function RegisterEventForm() {
         </div>
       </div>
       <Button type="submit" disabled={!eventLink} className="w-full bg-purple-600 hover:bg-purple-700">
-        Submit Event
+        Submit event
       </Button>
       {state && (
         <Alert variant={state.success ? "default" : "destructive"}>
