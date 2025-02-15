@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from './config/supabase'
+import supabase from './config/supabase';
 import { MapPin, Calendar, Sun, Moon } from 'lucide-react';
 import './App.css';
 
@@ -20,7 +20,7 @@ const eventsBySubreddit = {
 function App() {
   const [subreddit, setSubreddit] = useState('');
   const [events, setEvents] = useState([]);
-  const [tabId, setTabId] = useState();
+  const [tabId, setTabId] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
@@ -29,13 +29,60 @@ function App() {
         const url = tabs[0].url;
         const match = url.match(/reddit\.com\/r\/([^/]+)/);
         if (match && match[1]) {
-          setSubreddit(match[1]);
-          setEvents(eventsBySubreddit[match[1].toLowerCase()] || []);
+          const subredditName = match[1];
+          setSubreddit(subredditName);
+          setEvents(eventsBySubreddit[subredditName.toLowerCase()] || []);
+          recordRequest(subredditName);
         }
         setTabId(tabs[0].id);
       }
     });
   }, []);
+
+  async function recordRequest(subredditName) {
+    const { data: subredditData, error: subredditError } = await supabase
+      .from('subreddits')
+      .select('id')
+      .eq('name', subredditName)
+      .single();
+
+    if (subredditError || !subredditData) {
+      console.error('Error fetching subreddit id:', subredditError);
+      return;
+    }
+
+    const subredditId = subredditData.id;
+
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      const ipInfo = await res.json();
+      const ipAddress = ipInfo.ip;
+      const userLocation = ipInfo.city; 
+
+      const sgTime = new Date(
+        new Date().toLocaleString("en-US", { timeZone: "Asia/Singapore" })
+      );
+
+      const { data: insertData, error: insertError } = await supabase
+        .from('requests')
+        .insert([
+          {
+            ip_address: ipAddress,
+            subreddit_id: subredditId,
+            user_location: userLocation,
+            created_at: sgTime.toISOString(),
+          },
+        ]);
+
+      if (insertError) {
+        console.error('Error inserting request:', insertError);
+      } else {
+        console.log('Request recorded:', insertData);
+      }
+    } catch (err) {
+      console.error('Error fetching IP information:', err);
+    }
+  }
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -77,7 +124,7 @@ function App() {
           .iframe-container {
             position: relative;
             width: 100%;
-            height: min(800px, 90vh);
+            height: min(400px, 90vh);
             overflow: hidden;
           }
 
