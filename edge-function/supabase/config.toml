@@ -1,0 +1,4 @@
+[functions.deepseek-search]
+verify_jwt = false
+enabled = true
+entrypoint = "functions/deepseek-search/index.ts"
