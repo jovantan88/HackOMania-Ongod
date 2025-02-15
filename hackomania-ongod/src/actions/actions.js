@@ -351,7 +351,18 @@ export async function getSubredditEvents(subreddit) {
     const eventUrls = events.map(event => event.event_url);
     const uniqueEventUrls = [...new Set(eventUrls)];
 
-    return { success: true, events: uniqueEventUrls };
+    // fetch all event details using the unique event urls
+    const { data: eventDetails, error: eventDetailsError } = await supabase
+    .from("events")
+    .select('*')
+    .in('url', uniqueEventUrls);
+
+    if (eventDetailsError) {
+      console.error("Error fetching event details:", eventDetailsError);
+      return { success: false, error: eventDetailsError };
+    }
+
+    return { success: true, events: eventDetails };
   }
   else {
     const { data: subredditCategories, error: categoriesError } = await supabase
@@ -363,18 +374,14 @@ export async function getSubredditEvents(subreddit) {
       console.error("Error fetching subreddit categories:", categoriesError);
       return { success: false, error: categoriesError };
     }
-    console.log(subredditCategories);
 
     const categoryIds = subredditCategories.map(cat => cat.category_id);
-    console.log(categoryIds);
 
     // Fetch events for the categories of the subreddit
     const { data: events, error: eventsError } = await supabase
       .from("category_events")
       .select("event_url")
       .in("category_id", categoryIds);
-
-    console.log(events);
 
     if (eventsError) {
       console.error("Error fetching events for subreddit:", eventsError);
@@ -385,9 +392,18 @@ export async function getSubredditEvents(subreddit) {
     const eventUrls = events.map(event => event.event_url);
     const uniqueEventUrls = [...new Set(eventUrls)];
 
-    console.log(uniqueEventUrls);
+    // fetch all event details using the unique event urls
+    const { data: eventDetails, error: eventDetailsError } = await supabase
+      .from("events")
+      .select('*')
+      .in('url', uniqueEventUrls);
 
-    return { success: true, events: uniqueEventUrls };
+    if (eventDetailsError) {
+      console.error("Error fetching event details:", eventDetailsError);
+      return { success: false, error: eventDetailsError };
+    }
+
+    return { success: true, events: eventDetails };
   }
 }
 

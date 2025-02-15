@@ -122,9 +122,9 @@ export default function Dashboard() {
       if (result.success && result.events) {
         const transformed = result.events.map(event => ({
           id: event.id,
-          name: event.title,
-          description: event.selftext,
-          location: event.location,
+          name: event.name,
+          description: event.short_description,
+          location: event.address,
           price: parseFloat(event.price),
           coordinates: [event.lon, event.lat],
           image_url: event.image_url,
