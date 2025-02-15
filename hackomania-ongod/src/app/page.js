@@ -9,7 +9,6 @@ import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import Image from 'next/image'
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +31,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+
+import EventDialog from "@/components/EventDialog";
 
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
@@ -295,44 +296,13 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-      <Dialog open={!!selectedDetail} onOpenChange={(open) => { if (!open) setSelectedDetail(null) }}>
-        <DialogContent className="overflow-y-auto max-h-[calc(100vh-200px)]">
-          <DialogHeader>
-            <div className="flex items-center w-full">
-              <img
-                src={selectedDetail?.image_url}
-                alt={selectedDetail?.name}
-                className="mr-2 w-8 h-8 rounded-full"
-              />
-              <DialogTitle className="whitespace-normal break-words">
-                {selectedDetail?.name}
-              </DialogTitle>
-            </div>
-            <DialogDescription className="whitespace-normal break-words">
-              {selectedDetail?.description}
-            </DialogDescription>
-            <p className="text-xs text-gray-500">
-              {selectedDetail?.date && `Date: ${selectedDetail.date}`}
-            </p>
-          </DialogHeader>
-          <p className="mb-2 text-sm flex items-center">
-            <MapPin className="mr-1 inline-block h-4 w-4" />
-            {selectedDetail?.location}
-          </p>
-          <p className="font-bold">{selectedDetail?.price === 0 ? "Free" : `$${selectedDetail?.price}`}</p>
-          <DialogFooter>
-            <div className="flex w-full justify-between">
-              <Button
-                variant="outline"
-                onClick={() => handleEventClick(selectedDetail?.url)}
-              >
-                Sign up here
-              </Button>
-              <Button onClick={() => setSelectedDetail(null)}>Close</Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EventDialog
+        event={selectedDetail}
+        isOpen={!!selectedDetail}
+        onClose={() => setSelectedDetail(null)}
+        onEventClick={handleEventClick}
+        session={session}
+      />
     </div>
   )
 }
