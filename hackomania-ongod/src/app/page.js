@@ -50,17 +50,27 @@ export default function Dashboard() {
   const [events, setEvents] = React.useState([])
   const [selectedEvent, setSelectedEvent] = React.useState(null)
   const [selectedDetail, setSelectedDetail] = React.useState(null)
+  const [session, setSession] = React.useState(null);
 
   const loginWithGitHub = () => {
-    supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${location.origin}/auth/callback`,
-      },
-    });
+    // Only attempt login when not already logged in.
+    if (!session) {
+      supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${location.origin}/auth/callback`,
+        },
+      });
+    }
   };
 
   React.useEffect(() => {
+    // Check if the user is logged in
+    async function fetchSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+    }
+    fetchSession();
     async function fetchEvents() {
       const result = await getAllEvents()
       console.log("getAllEvents result:", result)
@@ -109,9 +119,13 @@ export default function Dashboard() {
 
   return (
     <div className="flex h-screen flex-col relative">
-      {/* New GitHub sign-up button */}
+      {/* GitHub button displays status based on session */}
       <div className="absolute top-0 right-0 m-4 z-20">
-        <Button onClick={loginWithGitHub} variant="outline">Sign up with GitHub</Button>
+        {session ? (
+          <Button variant="outline" disabled>Logged in</Button>
+        ) : (
+          <Button onClick={loginWithGitHub} variant="outline">Sign up with GitHub</Button>
+        )}
       </div>
       <div className="flex flex-1 relative">
         <div className="w-1/2 max-w-[500px] overflow-y-auto border-l">
