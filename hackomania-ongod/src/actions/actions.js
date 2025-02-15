@@ -1,6 +1,7 @@
 "use server"
 
 import { z } from "zod"
+import { supabase } from "../lib/supabase/supabaseClient"
 
 const eventSchema = z.object({
   eventLink: z
@@ -37,5 +38,17 @@ export async function registerEvent(prevState, formData) {
       message: "An unexpected error occurred. Please try again.",
     }
   }
+}
+
+// New function to fetch all events from the events table
+export async function getAllEvents() {
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+  if (error) {
+    console.error("Error fetching events:", error)
+    return { success: false, error }
+  }
+  return { success: true, events: data }
 }
 

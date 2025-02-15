@@ -2,7 +2,8 @@
 
 import * as React from "react"
 import { MapPin, Search } from 'lucide-react'
-import Map, { Marker } from "react-map-gl"
+import Map, { Marker } from "react-map-gl/mapbox";
+import { Popup } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css"
 
 import { Button } from "@/components/ui/button"
@@ -23,42 +24,38 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 
-// Mock events data
-const events = [
-  {
-    id: 1,
-    name: "Summer Music Festival",
-    description: "A weekend of live music and fun",
-    location: "Central Park, New York",
-    price: 50,
-    coordinates: [-73.968285, 40.785091],
-  },
-  {
-    id: 2,
-    name: "Tech Conference 2023",
-    description: "The latest in technology and innovation",
-    location: "Moscone Center, San Francisco",
-    price: 299,
-    coordinates: [-122.401417, 37.784172],
-  },
-  {
-    id: 3,
-    name: "Food & Wine Expo",
-    description: "Taste cuisines from around the world",
-    location: "Navy Pier, Chicago",
-    price: 75,
-    coordinates: [-87.601909, 41.891682],
-  },
-]
+import { getAllEvents } from "@/actions/actions"
 
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
   const [viewState, setViewState] = React.useState({
-    longitude: -98.5795,
-    latitude: 39.8283,
-    zoom: 3,
+    longitude: 103.8198,
+    latitude: 1.3521,
+    zoom: 11.5,
   })
+  const [events, setEvents] = React.useState([])
+  const [selectedEvent, setSelectedEvent] = React.useState(null) // New state for popup
+
+  React.useEffect(() => {
+    async function fetchEvents() {
+      const result = await getAllEvents()
+      console.log("getAllEvents result:", result)
+      if(result.success && result.events) {
+        const transformed = result.events.map(event => ({
+          id: event.id,
+          name: event.name,
+          description: event.description,
+          location: event.address,
+          price: parseFloat(event.price),
+          coordinates: [event.lon, event.lat],
+          image_url: event.image_url // New field for marker image
+        }))
+        setEvents(transformed)
+      }
+    }
+    fetchEvents()
+  }, [])
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -120,17 +117,41 @@ export default function Dashboard() {
                 latitude={event.coordinates[1]}
                 anchor="bottom"
               >
-                <MapPin className="h-6 w-6 text-red-500" />
+                <img
+                  src={event.image_url}
+                  alt={event.name}
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    cursor: "pointer",
+                    border: "2px solid black" // Added border
+                  }}
+                  onClick={() => setSelectedEvent(event)}
+                />
               </Marker>
             ))}
+            {selectedEvent && (
+              <Popup
+                longitude={selectedEvent.coordinates[0]}
+                latitude={selectedEvent.coordinates[1]}
+                closeOnClick={false}
+                onClose={() => setSelectedEvent(null)}
+                anchor="top"
+              >
+                <div style={{ maxWidth: "200px" }}>
+                  <h3 className="text-lg font-semibold">{selectedEvent.name}</h3>
+                  <p className="text-sm">{selectedEvent.description}</p>
+                </div>
+              </Popup>
+            )}
           </Map>
         </div>
-        <div className="w-80 overflow-y-auto border-l p-4">
+        <div className="w-1/3 overflow-y-auto border-l p-4">
           <h2 className="mb-4 text-xl font-bold">Events</h2>
           {filteredEvents.map((event) => (
             <div key={event.id} className="mb-4 rounded border p-4 shadow">
               <h3 className="text-lg font-semibold">{event.name}</h3>
-              <p className="text-sm text-gray-600">{event.description}</p>
               <p className="text-sm">
                 <MapPin className="mr-1 inline-block h-4 w-4" />
                 {event.location}
