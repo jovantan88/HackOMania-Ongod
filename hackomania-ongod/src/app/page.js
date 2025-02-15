@@ -8,7 +8,7 @@ import "mapbox-gl/dist/mapbox-gl.css"
 import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
-
+import { supabase } from "@/lib/supabase/supabaseClient";
 import Image from 'next/image'
 
 import { Button } from "@/components/ui/button"
@@ -33,8 +33,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-const LINKEDIN_CLIENT_ID = process.env.NEXT_PUBLIC_LINKEDIN_CLIENT_ID || "";
-
 export default function Dashboard() {
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
@@ -52,6 +50,15 @@ export default function Dashboard() {
   const [events, setEvents] = React.useState([])
   const [selectedEvent, setSelectedEvent] = React.useState(null)
   const [selectedDetail, setSelectedDetail] = React.useState(null)
+
+  const loginWithGitHub = () => {
+    supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${location.origin}/auth/callback`,
+      },
+    });
+  };
 
   React.useEffect(() => {
     async function fetchEvents() {
@@ -101,13 +108,17 @@ export default function Dashboard() {
   // </div >
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col relative">
+      {/* New GitHub sign-up button */}
+      <div className="absolute top-0 right-0 m-4 z-20">
+        <Button onClick={loginWithGitHub} variant="outline">Sign up with GitHub</Button>
+      </div>
       <div className="flex flex-1 relative">
         <div className="w-1/2 max-w-[500px] overflow-y-auto border-l">
           <h2 className="text-xl font-bold p-4">Events</h2>
-          {filteredEvents.map((event) => (
+          {filteredEvents.map((event, index) => (
             <div
-              key={event.id}
+              key={`event-list-${event.id}-${index}`}
               className="mb-4 cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100"
               onClick={() => setSelectedDetail(event)}
             >
@@ -157,7 +168,7 @@ export default function Dashboard() {
               </Select>
               {/* Removed date input fields */}
             </div>
-            <a href={`https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${LINKEDIN_CLIENT_ID}&redirect_uri=https://hack-o-mania-ongod.vercel.app/callback&state=foobar&scope=liteprofile%20emailaddress%20w_member_social`} target="_blank">
+            <a href={`/register-event`}>
               <Button>Add event</Button></a>
           </div>
           <Map
@@ -167,9 +178,9 @@ export default function Dashboard() {
             mapStyle="mapbox://styles/kyouran/cm763uly101st01r5ae8r2yun"
             mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
           >
-            {filteredEvents.map((event) => (
+            {filteredEvents.map((event, index) => (
               <Marker
-                key={event.id}
+                key={`marker-${event.id}-${index}`}
                 longitude={event.coordinates[0]}
                 latitude={event.coordinates[1]}
                 anchor="bottom"
