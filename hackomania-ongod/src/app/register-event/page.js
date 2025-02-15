@@ -1,31 +1,42 @@
-import RegisterEventForm from "../../components/register-event-form"
-// import FeatureHighlights from "./feature-highlights"
-// import Footer from "./footer"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import RegisterEventForm from "@/components/register-event-form"
 
 export default function RegisterEventPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 to-white">
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-purple-100 via-purple-50 to-white">
       <main className="flex-grow">
-        <section className="bg-purple-700 text-white py-20">
-          <div className="container mx-auto px-4 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Register Your Event</h1>
-            <p className="text-xl mb-8">Showcase your Eventbrite or Lu.ma events on our platform</p>
+        {/* Hero Section */}
+        <section className="bg-gradient-to-r from-purple-700 to-purple-800 text-white py-24">
+          <div className="container mx-auto px-6 text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 animate-fade-in">
+              Register Your Event
+            </h1>
+            <p className="text-xl md:text-2xl mb-8 text-purple-100 max-w-2xl mx-auto">
+              Showcase your Eventbrite or Lu.ma events on our platform and reach a wider audience
+            </p>
           </div>
         </section>
 
-        <section className="container mx-auto px-4 py-16">
-          <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
-            <div className="p-8">
-              <h2 className="text-2xl font-semibold mb-6 text-center text-purple-700">Submit Your Event</h2>
+        {/* Form Section */}
+        <section className="container mx-auto px-4 -mt-12 relative z-10 mb-16">
+          <Card className="max-w-3xl mx-auto shadow-2xl">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-semibold text-purple-700">
+                Submit Your Event
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
               <RegisterEventForm />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </section>
-
-        {/* <FeatureHighlights /> */}
       </main>
-      {/* <Footer /> */}
+
+      {/* Decorative Elements */}
+      <div className="fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-purple-200 rounded-full opacity-20 blur-3xl" />
+        <div className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-purple-300 rounded-full opacity-20 blur-3xl" />
+      </div>
     </div>
   )
 }
-
