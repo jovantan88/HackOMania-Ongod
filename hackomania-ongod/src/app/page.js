@@ -80,7 +80,8 @@ export default function Dashboard() {
   }, [])
 
   const filteredEvents = events.filter((event) => {
-    const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase())
+    if (!event) return false; // Skip null events
+    const matchesSearch = (event.name || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPrice =
       priceFilter === "" ||
       priceFilter === "all" || // Added "all" condition
