@@ -152,11 +152,7 @@ export default function Dashboard() {
           {filteredEvents.map((event, index) => (
             <div
               key={`event-list-${event.id}-${index}`}
-<<<<<<< Updated upstream
-              className="cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100"
-=======
-              className="mb-4 cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100 transition-colors duration-200"
->>>>>>> Stashed changes
+              className="cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100 transition-colors duration-200"
               onClick={() => setSelectedDetail(event)}
               onMouseEnter={() => handleEventHover(event)}
               onMouseLeave={handleEventLeave}
@@ -169,15 +165,8 @@ export default function Dashboard() {
                     {event.location}
                   </p>
                   <div>
-<<<<<<< Updated upstream
                     <p className="text-xs text-gray-500 float-start text-bottom">{new Date(event.date).toDateString()}</p>
                     <p className="text-xs font-bold float-end">{event.price === 0 ? "Free" : `$${event.price}`}</p>
-=======
-                    <p className="text-xs text-gray-500 float-start text-bottom">
-                      {new Date(event.date).toDateString()}
-                    </p>
-                    <p className="text-xs font-bold float-end">${event.price}</p>
->>>>>>> Stashed changes
                   </div>
                 </div>
                 <img
