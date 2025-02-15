@@ -182,13 +182,13 @@ export default function Dashboard() {
         </div>
         <div className="flex-1 relative">
           <div className="p-4 absolute top-0 left-0 w-full z-10 flex flex-row gap-2">
-            <Input
+            {/* <Input
               type="search"
               placeholder="Search events..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-[300px] text-xl"
-            />
+            /> */}
             <div className="flex items-center space-x-2">
               <Select value={priceFilter} onValueChange={setPriceFilter}>
                 <SelectTrigger className="w-[180px]">
