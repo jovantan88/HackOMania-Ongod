@@ -13,11 +13,9 @@ const eventsBySubreddit = {
 };
 
 function injectEventContent() {
-    // Remove existing container if present
     const existing = document.getElementById('reddit-event');
     if (existing) existing.remove();
 
-    // Create container
     const container = document.createElement('div');
     container.id = 'reddit-event';
     container.style.border = "1px solid #ccc";
@@ -27,17 +25,21 @@ function injectEventContent() {
     container.style.backgroundColor = "#fff";
     container.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
 
-    // Insert iframe
     container.innerHTML = `
       <div class="iframe-container">
         <iframe
           src="https://hack-o-mania-ongod.vercel.app/"
           style="border: none; width: 100%; height: 100%;"
         ></iframe>
-      </div>
+        <a href="https://hack-o-mania-ongod.vercel.app/register-event" target="_blank" rel="noopener noreferrer">
+      <button class="px-6 py-3 bg-blue-600 text-white font-bold text-xl rounded-xl hover:bg-blue-700 transition duration-300 shadow-lg"
+        style="position: absolute; bottom: 20px; right: 20px;">
+        Add Event
+      </button>
+    </a>
+      </div> 
     `;
 
-    // Add styles only once
     if (!document.getElementById('reddit-event-style')) {
         const style = document.createElement('style');
         style.id = 'reddit-event-style';
@@ -59,12 +61,10 @@ function injectEventContent() {
         document.head.appendChild(style);
     }
 
-    // Try inserting after navigation loader
     const loader = document.querySelector('shreddit-async-loader[bundlename="navigation_links"]');
     if (loader) {
         loader.insertAdjacentElement('afterend', container);
     } else {
-        // Fallback to inserting at the top of the body
         document.body.prepend(container);
     }
 }
@@ -86,21 +86,18 @@ function checkAndInject() {
     }
 }
 
-// Initial call
 checkAndInject();
 
-// Improved URL change detection using both MutationObserver and pushState overrides
 let lastUrl = location.href;
 const observer = new MutationObserver(() => {
     const currentUrl = location.href;
     if (currentUrl !== lastUrl) {
         lastUrl = currentUrl;
-        setTimeout(checkAndInject, 1000); // Delay to allow Reddit's dynamic content to load
+        setTimeout(checkAndInject, 1000);
     }
 });
 observer.observe(document.body, { subtree: true, childList: true });
 
-// Override history methods to catch URL changes from navigation
 const originalPushState = history.pushState;
 history.pushState = function (...args) {
     originalPushState.apply(this, args);
@@ -113,7 +110,6 @@ history.replaceState = function (...args) {
     setTimeout(checkAndInject, 1000);
 };
 
-// Listen for popstate events (back/forward navigation)
 window.addEventListener('popstate', () => {
     setTimeout(checkAndInject, 1000);
 });

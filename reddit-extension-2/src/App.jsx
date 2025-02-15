@@ -50,7 +50,7 @@ function App() {
       if (existing) {
         existing.remove();
       }
-      
+
       // Create the container for our injected Reddit-like post
       const container = document.createElement('div');
       container.id = 'reddit-event';
@@ -60,7 +60,7 @@ function App() {
       container.style.margin = "10px 0";
       container.style.backgroundColor = "#fff";
       container.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
-      
+
       // Create the HTML content for the Reddit post appearance
       container.innerHTML = `
         <div class="iframe-container">
@@ -71,9 +71,9 @@ function App() {
         </div>
         `;
 
-        // Add this CSS to your stylesheet
-        const style = document.createElement('style');
-        style.textContent = `
+      // Add this CSS to your stylesheet
+      const style = document.createElement('style');
+      style.textContent = `
           .iframe-container {
             position: relative;
             width: 100%;
@@ -89,8 +89,8 @@ function App() {
             height: 100%;
           }
         `;
-        document.head.appendChild(style);
-      
+      document.head.appendChild(style);
+
       // Look for the target element; here we're following the original pattern.
       const loader = document.querySelector('shreddit-async-loader[bundlename="navigation_links"]');
       if (loader) {
@@ -113,6 +113,17 @@ function App() {
 
   return (
     <div className="app-container">
+      <a
+        href="https://hack-o-mania-ongod.vercel.app/register-event"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <button
+          className="mb-3 relative px-6 py-3 bg-blue-200 text-white font-bold text-xl rounded-xl hover:bg-blue-700 transition duration-300 shadow-lg before:absolute before:inset-0 before:bg-gray-800 before:rounded-xl before:z-0"
+        >
+          <span className="relative z-10">Add Event</span>
+        </button>
+      </a>
       <h1 className="title">Subreddit Events</h1>
       {subreddit ? (
         <>
