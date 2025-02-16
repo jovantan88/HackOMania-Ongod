@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { getAllEvents, trackEventClick } from "@/actions/actions"
+import { getAllEvents, trackEventClick, getAllEventClickCounts } from "@/actions/actions"
 
 import {
   Dialog,
@@ -54,6 +54,10 @@ export default function Dashboard() {
   const [selectedDetail, setSelectedDetail] = React.useState(null)
   const [session, setSession] = React.useState(null);
   const [darkMode, setDarkMode] = React.useState(false)
+  // New state for click counts mapping: { event_url: [username, ...] }
+  const [eventClicks, setEventClicks] = React.useState({});
+  // New state for user's network (friends objects with login and avatar_url)
+  const [userNetwork, setUserNetwork] = React.useState([]);
 
   const mapStyle = darkMode
     ? "mapbox://styles/kyouran/cm76pavwu00kq01qv61yu5iid"
@@ -123,7 +127,37 @@ export default function Dashboard() {
       }
     }
     fetchEvents()
+
+    // Fetch all event click counts
+    async function fetchClickCounts() {
+      const clicks = await getAllEventClickCounts();
+      setEventClicks(clicks);
+    }
+    fetchClickCounts()
   }, [])
+
+  // New: Fetch user's GitHub network if logged in with GitHub
+  React.useEffect(() => {
+    async function fetchUserNetwork() {
+      if (session && session.user?.app_metadata?.provider === 'github') {
+        const username = session.user.user_metadata.user_name || session.user.user_metadata.login;
+        const [followersRes, followingRes] = await Promise.all([
+          fetch(`https://api.github.com/users/${username}/followers`).then(res => res.json()),
+          fetch(`https://api.github.com/users/${username}/following`).then(res => res.json())
+        ]);
+        // Merge followers and following, deduplicating based on login
+        const combined = [...followersRes, ...followingRes];
+        const uniqueFriends = combined.reduce((acc, friend) => {
+          if (!acc.find(f => f.login === friend.login)) {
+            acc.push({ login: friend.login, avatar_url: friend.avatar_url });
+          }
+          return acc;
+        }, []);
+        setUserNetwork(uniqueFriends);
+      }
+    }
+    fetchUserNetwork();
+  }, [session]);
 
   const filteredEvents = events.filter((event) => {
     if (!event) return false;
@@ -142,6 +176,14 @@ export default function Dashboard() {
       (!end || (eventDate && eventDate <= end))
     return matchesSearch && matchesPrice && matchesDate
   })
+
+  // Helper to compute network click count
+  const computeNetworkClicks = (eventUrl) => {
+    if (!userNetwork.length || !eventClicks[eventUrl]) return 0;
+    return eventClicks[eventUrl].filter(username =>
+      userNetwork.some(friend => friend.login === username)
+    ).length;
+  };
 
   const handleEventClick = async (eventUrl) => {
     if (session?.user?.user_metadata?.user_name) {
@@ -185,6 +227,11 @@ export default function Dashboard() {
                       <MapPin className="mr-1 inline-block h-4 w-4" />
                       {event.location}
                     </p>
+                    {/* New: display click counts */}
+                    <div className="text-xs text-gray-500">
+                      Clicks: {eventClicks[event.url] ? eventClicks[event.url].length : 0}{" "}
+                      {session && <span> | Network clicks: {computeNetworkClicks(event.url)}</span>}
+                    </div>
                     <div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 float-start text-bottom">{new Date(event.date).toDateString()}</p>
                       <p className="text-xs font-bold float-end">{event.price === 0 ? "Free" : `$${event.price}`}</p>
@@ -313,6 +360,8 @@ export default function Dashboard() {
           onClose={() => setSelectedDetail(null)}
           onEventClick={handleEventClick}
           session={session}
+          githubFriends={userNetwork}
+          eventClicks={eventClicks}
         />
       </div>
       <style jsx global>{`
