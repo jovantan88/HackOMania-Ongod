@@ -12,14 +12,16 @@ function injectEventContent(bbg) {
     container.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
 
     container.innerHTML = `
-      <div class="iframe-container">
+    <div class="iframe-container">
         <iframe
-          src="https://hack-o-mania-ongod.vercel.app/?subreddit=${bbg}"
-          style="border: none; width: 100%; height: 100%;"
+        src="https://hack-o-mania-ongod.vercel.app/?subreddit=${bbg}"
+        style="border: none; width: 100%; height: 100%;"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+        allow="cross-origin-isolated; fullscreen; clipboard-read; clipboard-write"
         ></iframe>
-        </a>
-      </div>
+    </div>
     `;
+
 
     if (!document.getElementById('reddit-event-style')) {
         const style = document.createElement('style');
