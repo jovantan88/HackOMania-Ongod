@@ -143,13 +143,6 @@ function App() {
   return (
     <div className={`app-container ${darkMode ? 'dark' : ''}`}>
       <div className="header">
-        <a
-          href="https://hack-o-mania-ongod.vercel.app/register-event"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <button className="add-event-btn">Add Event</button>
-        </a>
         <button className="theme-toggle" onClick={toggleDarkMode}>
           {darkMode ? <Sun size={24} /> : <Moon size={24} />}
         </button>
