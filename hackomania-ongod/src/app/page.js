@@ -38,6 +38,7 @@ export default function Dashboard() {
   // Add URL parameter check and set default zoom value
   const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : "");
   const defaultZoom = urlParams.get('subreddit') ? 9.8 : 11.5;
+  const hideGithubLogin = urlParams.get('subreddit') !== null; // new constant
 
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
@@ -226,12 +227,15 @@ export default function Dashboard() {
     <div className={darkMode ? "dark" : ""}>
       <div className="flex h-screen flex-col relative bg-white dark:bg-gray-900 text-black dark:text-white">
         <div className="absolute top-0 right-0 m-4 z-20 flex items-center space-x-2">
-          {session ? (
-            <Button variant="outline" disabled>Logged in</Button>
-          ) : (
-            <Button onClick={loginWithGitHub} variant="outline">
-              Sign up with <Github className="w-4 h-4 inline-block" />
-            </Button>
+          {/* Conditionally render GitHub login */}
+          {!hideGithubLogin && (
+            session ? (
+              <Button variant="outline" disabled>Logged in</Button>
+            ) : (
+              <Button onClick={loginWithGitHub} variant="outline">
+                Sign up with <Github className="w-4 h-4 inline-block" />
+              </Button>
+            )
           )}
           <Button variant="outline" onClick={() => setDarkMode(!darkMode)}>
             {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
