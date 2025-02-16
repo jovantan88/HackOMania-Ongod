@@ -12,7 +12,7 @@
     "activeTab"
   ],
   "host_permissions": [
-    "*://*.reddit.com/*"
+    "<all_urls>"
   ],
   "content_scripts": [
     {
