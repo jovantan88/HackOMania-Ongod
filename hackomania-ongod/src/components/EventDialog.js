@@ -280,7 +280,7 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session, githubFrie
           {/* New: display user's GitHub friends who clicked */}
           {session && clickedFriends.length > 0 && (
             <div className="mt-4">
-              <h3 className="text-md font-semibold dark:text-white">Your GitHub Friends Who Clicked</h3>
+              <h3 className="text-md font-semibold dark:text-white">Your GitHub friends who clicked</h3>
               <div className="flex space-x-2 mt-2 overflow-x-auto">
                 {clickedFriends.map(friend => (
                   <div key={friend.login} className="flex flex-col items-center">

@@ -30,10 +30,10 @@ export default function RegisterEventPage() {
           >
             <div className="container mx-auto px-6 text-center">
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
-                Add an Event
+                Add an event
               </h1>
               <p className="text-xl md:text-2xl mb-8 text-stone-200 mx-auto max-w-2xl">
-                Share a <a href="https://eventbrite.sg" className="underline text-white hover:text-indigo-200">Eventbrite</a> or <a href="https://lu.ma" className="underline text-white hover:text-indigo-200">Lu.ma</a> event on our platform.
+                Share a <a href="https://eventbrite.sg" className="underline text-white hover:text-indigo-200">eventbrite</a> or <a href="https://lu.ma" className="underline text-white hover:text-indigo-200">lu.ma</a> event on our platform.
               </p>
             </div>
           </section>
@@ -43,7 +43,7 @@ export default function RegisterEventPage() {
             <Card className="max-w-3xl mx-auto dark:bg-stone-800 dark:text-white border dark:border-stone-700">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                  Submit Your Event
+                  Submit your event
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
