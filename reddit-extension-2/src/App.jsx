@@ -131,12 +131,12 @@ function App() {
   };
 
   async function handleEventClick(event) {
-    if (!event.event_url) {
+    if (!event.url) {
       console.error('No event_url found for this event');
       return;
     }
-    chrome.tabs.create({ url: event.event_url }, () =>
-      console.log('Opened event in new tab:', event.event_url)
+    chrome.tabs.create({ url: event.url }, () =>
+      console.log('Opened event in new tab:', event.url)
     );
   }
 
