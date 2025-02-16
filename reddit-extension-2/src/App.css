@@ -1,4 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+UI:wght@400;500&display=swap');
+
 body {
+  font-family: 'Geist UI', sans-serif;
   transition: background-color 0.3s, color 0.3s;
 }
 
@@ -10,7 +13,7 @@ body.dark {
 .app-container {
   padding: 20px;
   min-width: 300px;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Geist UI', sans-serif;
   background-color: #f3f4f6;
   color: #1f2937;
   border-radius: 12px;

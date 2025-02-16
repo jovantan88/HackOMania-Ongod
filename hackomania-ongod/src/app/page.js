@@ -35,6 +35,10 @@ import {
 import EventDialog from "@/components/EventDialog";
 
 export default function Dashboard() {
+  // Add URL parameter check and set default zoom value
+  const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : "");
+  const defaultZoom = urlParams.get('subreddit') ? 10 : 11.5;
+
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
   const [dateRange, setDateRange] = React.useState([{
@@ -47,7 +51,7 @@ export default function Dashboard() {
   const [viewState, setViewState] = React.useState({
     longitude: 103.8198,
     latitude: 1.3521,
-    zoom: 11.5,
+    zoom: defaultZoom, // updated zoom value
   })
   const [events, setEvents] = React.useState([])
   const [selectedEvent, setSelectedEvent] = React.useState(null)
