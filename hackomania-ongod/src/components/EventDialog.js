@@ -232,16 +232,22 @@ const CommentSection = ({ eventUrl, session }) => {
   );
 };
 
-const EventDialog = ({ event, isOpen, onClose, onEventClick, session }) => {
+const EventDialog = ({ event, isOpen, onClose, onEventClick, session, githubFriends, eventClicks }) => {
   const handleEventClick = async () => {
     if (!event?.url) return;
     await onEventClick(event.url);
   };
 
+  // Compute GitHub friends who clicked the event
+  const clickedFriends =
+    session && event && event.url && eventClicks && eventClicks[event.url]
+      ? githubFriends.filter(friend => eventClicks[event.url].includes(friend.login))
+      : [];
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
       <DialogContent className="overflow-hidden max-w-5xl max-h-[calc(100vh-50px)] flex flex-row justify-between grid grid-cols-2 dark:bg-stone-900">
-        <div className="overflow-y-auto">
+        <div className="overflow-y-auto p-4">
           <DialogHeader>
             <div className="flex items-center w-full">
               <img
@@ -271,6 +277,25 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session }) => {
             </p>
           </div>
 
+          {/* New: display user's GitHub friends who clicked */}
+          {session && clickedFriends.length > 0 && (
+            <div className="mt-4">
+              <h3 className="text-md font-semibold dark:text-white">Your GitHub Friends Who Clicked</h3>
+              <div className="flex space-x-2 mt-2 overflow-x-auto">
+                {clickedFriends.map(friend => (
+                  <div key={friend.login} className="flex flex-col items-center">
+                    <img
+                      src={friend.avatar_url}
+                      alt={friend.login}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <span className="text-xs dark:text-gray-300">{friend.login}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <DialogFooter className="mt-4">
             <div className="flex w-full justify-between">
               <Button onClick={onClose}>Close</Button>
@@ -284,10 +309,7 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session }) => {
           </DialogFooter>
         </div>
         <div className="border-l">
-          <CommentSection
-            eventUrl={event?.url}
-            session={session}
-          />
+          <CommentSection eventUrl={event?.url} session={session} />
         </div>
       </DialogContent>
     </Dialog>

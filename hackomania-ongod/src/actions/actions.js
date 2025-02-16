@@ -440,3 +440,24 @@ export async function trackEventClick(eventUrl, githubUsername) {
   return { success: true };
 }
 
+export async function getAllEventClickCounts() {
+  const { data, error } = await supabase
+    .from("event_clicks")
+    .select("event_url, username");
+  if (error) {
+    console.error("Error fetching event clicks:", error);
+    return {};
+  }
+  const counts = {};
+  data.forEach(item => {
+    if (counts[item.event_url]) {
+      counts[item.event_url].add(item.username);
+    } else {
+      counts[item.event_url] = new Set([item.username]);
+    }
+  });
+  Object.keys(counts).forEach(key => {
+    counts[key] = Array.from(counts[key]);
+  });
+  return counts;
+}
