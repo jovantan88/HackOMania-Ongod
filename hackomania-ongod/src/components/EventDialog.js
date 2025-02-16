@@ -35,11 +35,11 @@ const Comment = ({ comment, onReply, session, comments, onDelete }) => {
         <div className="flex-1">
           <div className="flex items-center gap-1">
             <p className="font-semibold text-sm dark:text-white">{comment.username}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-stone-500 dark:text-stone-400">
               {new Date(comment.created_at).toLocaleDateString()}
             </p>
           </div>
-          <p className="mt-0.5 text-sm dark:text-gray-300">{comment.comment}</p>
+          <p className="mt-0.5 text-sm dark:text-stone-300">{comment.comment}</p>
           <div className="mt-1 flex gap-1">
             {session && (
               <Button
@@ -67,17 +67,17 @@ const Comment = ({ comment, onReply, session, comments, onDelete }) => {
 
       {showReplyForm && (
         <div className="mt-1 ml-4">
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             <Input
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Write a reply..."
-              className="flex-1 h-8 text-sm"
+              className="flex-1 text-sm"
             />
             <Button
               onClick={handleSubmitReply}
               disabled={!replyText.trim()}
-              className="h-8 text-sm"
+              className="text-sm"
             >
               Post
             </Button>
@@ -189,7 +189,7 @@ const CommentSection = ({ eventUrl, session }) => {
       <div className="px-4 pt-2">
         <h3 className="text-lg font-semibold dark:text-white">Comments</h3>
       </div>
-      <div className="h-[calc(100%-120px)] overflow-y-auto">
+      <div className="h-[calc(100%-84px)] overflow-y-auto">
         <div className="ps-4 p-2">
           <div className="space-y-2">
             {topLevelComments.map((comment) => (
@@ -207,7 +207,7 @@ const CommentSection = ({ eventUrl, session }) => {
       </div>
       <div className="flex-none ps-4 p-2">
         {session ? (
-          <div className="flex gap-1">
+          <div className="flex gap-2">
             <Input
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
@@ -223,7 +223,7 @@ const CommentSection = ({ eventUrl, session }) => {
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-stone-500 dark:text-stone-400">
             Please sign in to leave a comment.
           </p>
         )}
@@ -259,16 +259,16 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session, githubFrie
                 {event?.name}
               </DialogTitle>
             </div>
-            <DialogDescription className="whitespace-normal break-words dark:text-gray-400">
+            <DialogDescription className="whitespace-normal break-words dark:text-stone-400">
               {event?.description}
             </DialogDescription>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-stone-500 dark:text-stone-400">
               {event?.date && new Date(event.date).toDateString()}
             </p>
           </DialogHeader>
 
-          <div className="mt-4">
-            <p className="mb-2 text-sm flex items-center dark:text-gray-300">
+          <div className="flex-1">
+            <p className="mb-2 text-sm flex items-center dark:text-stone-300">
               <MapPin className="mr-1 inline-block h-4 w-4" />
               {event?.location}
             </p>
@@ -299,8 +299,11 @@ const EventDialog = ({ event, isOpen, onClose, onEventClick, session, githubFrie
           <DialogFooter className="mt-4">
             <div className="flex w-full justify-between">
               <Button onClick={onClose}>Close</Button>
-              <Button variant="outline" onClick={handleEventClick}>
-                Sign up here
+              <Button
+                variant="outline"
+                onClick={handleEventClick}
+              >
+                Learn more
               </Button>
             </div>
           </DialogFooter>

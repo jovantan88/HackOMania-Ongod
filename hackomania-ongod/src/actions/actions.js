@@ -84,6 +84,42 @@ ${html}
   }
 }
 
+async function categorizeSubreddit(subreddit, categories) {
+  try {
+    const prompt = `<instruction>
+You are a web scraping assistant. Your task is to categorize the provided subreddit, ${subreddit}, into one or more categories. Only return the following fields as a JSON object:
+<response_format>
+{
+  "categories": ["", ...] (select all applicable categories from the list of possible categories)
+}
+
+<possible_categories>
+${categories.join(", ")}
+</possible_categories>
+</instruction>
+
+<web_data>
+${subreddit.name}
+${subreddit.description}
+</web_data>`;
+
+    const result = await model.generateContent(prompt);
+
+    let parsed = {};
+    try {
+      console.log(result.response.text());
+      parsed = JSON.parse(result.response.text().replace(/^```json|```$/g, ""));
+    } catch (parseError) {
+      console.error("Failed to parse Gemini FLASH response as JSON:", parseError);
+    }
+    return parsed;
+  }
+  catch (error) {
+    console.error("Error in categorizeSubreddit:", error);
+    return {};
+  }
+}
+
 async function insertCategoryEvents(eventUrl, categoryIds) {
   const categoryEvents = categoryIds.map((categoryId) => ({
     event_url: eventUrl, // Changed from event_id to event_url
@@ -233,6 +269,160 @@ export async function getAllEvents() {
     return { success: false, error };
   }
   return { success: true, events: data };
+}
+
+
+export async function getSubredditEvents(subreddit) {
+  // fetch the subreddit from the database
+  const { data, error } = await supabase
+    .from("subreddits")
+    .select('*')
+    .eq('name', subreddit);
+
+  if (error) {
+    console.error("Error fetching subreddit:", error);
+    return { success: false, error };
+  }
+
+  if (data.length === 0) {
+    // fetch the subreddit to check if it exists on reddit
+    try {
+      const response = await fetch(`https://www.reddit.com/r/${subreddit}/about.json`);
+      if (!response.ok) {
+        return { success: false, error: "Subreddit not found" };
+      }
+      else {
+        const data = await response.json();
+        subreddit = {
+          name: data.data.display_name,
+          description: data.data.public_description
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching subreddit:", error);
+      return { success: false, error };
+    }
+
+    // since subreddit not found, add subreddit
+    const { success, error } = await addSubreddit(subreddit);
+    if (!success) {
+      return { success: false, error };
+    }
+
+    // get subreddit id of the newly added subreddit
+    const { data, error: fetchError } = await supabase
+      .from("subreddits")
+      .select('*')
+      .eq('name', subreddit.name);
+
+    if (fetchError) {
+      console.error("Error fetching subreddit:", fetchError);
+      return { success: false, error: fetchError };
+    }
+
+    // gemini to categorize subreddit
+    const categories = await fetchCategories();
+    const { categories: subredditCategories } = await categorizeSubreddit(subreddit, categories);
+
+    // Insert subreddit categories
+    const categoryData = await getCategoryIds(subredditCategories);
+    const categoryIds = categoryData.map(cat => cat.id);
+
+    const { error: insertError } = await supabase
+      .from("subreddit_categories")
+      .insert(categoryIds.map(categoryId => ({
+        subreddit_id: data[0].id,
+        category_id: categoryId
+      }))
+    );
+
+    if (insertError) {
+      console.error("Error inserting subreddit categories:", insertError);
+      return { success: false, error: insertError };
+    }
+
+    // Fetch events for the categories of the subreddit
+    const { data: events, error: eventsError } = await supabase
+      .from("category_events")
+      .select("event_url")
+      .in("category_id", categoryIds);
+
+    if (eventsError) {
+      console.error("Error fetching events for subreddit:", eventsError);
+      return { success: false, error: eventsError };
+    }
+
+    // ensure unique events
+    const eventUrls = events.map(event => event.event_url);
+    const uniqueEventUrls = [...new Set(eventUrls)];
+
+    // fetch all event details using the unique event urls
+    const { data: eventDetails, error: eventDetailsError } = await supabase
+    .from("events")
+    .select('*')
+    .in('url', uniqueEventUrls);
+
+    if (eventDetailsError) {
+      console.error("Error fetching event details:", eventDetailsError);
+      return { success: false, error: eventDetailsError };
+    }
+
+    return { success: true, events: eventDetails };
+  }
+  else {
+    const { data: subredditCategories, error: categoriesError } = await supabase
+      .from("subreddit_categories")
+      .select('*')
+      .eq('subreddit_id', data[0].id);
+
+    if (categoriesError) {
+      console.error("Error fetching subreddit categories:", categoriesError);
+      return { success: false, error: categoriesError };
+    }
+
+    const categoryIds = subredditCategories.map(cat => cat.category_id);
+
+    // Fetch events for the categories of the subreddit
+    const { data: events, error: eventsError } = await supabase
+      .from("category_events")
+      .select("event_url")
+      .in("category_id", categoryIds);
+
+    if (eventsError) {
+      console.error("Error fetching events for subreddit:", eventsError);
+      return { success: false, error: eventsError };
+    }
+
+    // ensure unique events
+    const eventUrls = events.map(event => event.event_url);
+    const uniqueEventUrls = [...new Set(eventUrls)];
+
+    // fetch all event details using the unique event urls
+    const { data: eventDetails, error: eventDetailsError } = await supabase
+      .from("events")
+      .select('*')
+      .in('url', uniqueEventUrls);
+
+    if (eventDetailsError) {
+      console.error("Error fetching event details:", eventDetailsError);
+      return { success: false, error: eventDetailsError };
+    }
+
+    return { success: true, events: eventDetails };
+  }
+}
+
+export async function addSubreddit(subreddit) {
+  const { data, error } = await supabase
+    .from("subreddits")
+    .insert({ name: subreddit.name });
+
+  if (error) {
+    console.error("Error adding subreddit:", error);
+    return { success: false, error };
+  }
+
+  return { success: true, data };
 }
 
 export async function trackEventClick(eventUrl, githubUsername) {
