@@ -126,7 +126,7 @@ export default function Dashboard() {
           image_url: event.image_url,
           url: event.url,
           date: event.datetime
-        }))
+        })).sort((a, b) => new Date(a.date) - new Date(b.date))
         setEvents(transformed)
       }
     }
@@ -144,7 +144,7 @@ export default function Dashboard() {
           image_url: event.image_url,
           url: event.url,
           date: event.datetime
-        }))
+        })).sort((a, b) => new Date(a.date) - new Date(b.date))
         setEvents(transformed)
       }
     }
