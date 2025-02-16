@@ -292,7 +292,7 @@ export default function Dashboard() {
                   anchor="top"
                 >
                   <div style={{ maxWidth: "200px" }}>
-                    <h3 className="text-md">{selectedEvent.name}</h3>
+                    <h3 className="text-md" style={{ color: 'black' }}>{selectedEvent.name}</h3>
                   </div>
                 </Popup>
               )}
