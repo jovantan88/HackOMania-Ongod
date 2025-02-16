@@ -37,7 +37,7 @@ import EventDialog from "@/components/EventDialog";
 export default function Dashboard() {
   // Add URL parameter check and set default zoom value
   const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : "");
-  const defaultZoom = urlParams.get('subreddit') ? 10 : 11.5;
+  const defaultZoom = urlParams.get('subreddit') ? 9.8 : 11.5;
 
   const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
     mapRef.current.getMap().flyTo({
       center: [103.8198, 1.3521],
-      zoom: 11.5,
+      zoom: defaultZoom,
       duration: 800,
       essential: true
     });
