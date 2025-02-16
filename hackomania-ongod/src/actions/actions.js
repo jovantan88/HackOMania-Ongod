@@ -99,8 +99,7 @@ ${categories.join(", ")}
 </instruction>
 
 <web_data>
-${subreddit.name}
-${subreddit.description}
+${subreddit}
 </web_data>`;
 
     const result = await model.generateContent(prompt);
@@ -285,24 +284,6 @@ export async function getSubredditEvents(subreddit) {
   }
 
   if (data.length === 0) {
-    // fetch the subreddit to check if it exists on reddit
-    try {
-      const response = await fetch(`https://www.reddit.com/r/${subreddit}/about.json`);
-      if (!response.ok) {
-        return { success: false, error: "Subreddit not found" };
-      }
-      else {
-        const data = await response.json();
-        subreddit = {
-          name: data.data.display_name,
-          description: data.data.public_description
-        };
-      }
-    } catch (error) {
-      console.error("Error fetching subreddit:", error);
-      return { success: false, error };
-    }
-
     // since subreddit not found, add subreddit
     const { success, error } = await addSubreddit(subreddit);
     if (!success) {
@@ -313,7 +294,7 @@ export async function getSubredditEvents(subreddit) {
     const { data, error: fetchError } = await supabase
       .from("subreddits")
       .select('*')
-      .eq('name', subreddit.name);
+      .eq('name', subreddit);
 
     if (fetchError) {
       console.error("Error fetching subreddit:", fetchError);
@@ -415,7 +396,7 @@ export async function getSubredditEvents(subreddit) {
 export async function addSubreddit(subreddit) {
   const { data, error } = await supabase
     .from("subreddits")
-    .insert({ name: subreddit.name });
+    .insert({ name: subreddit });
 
   if (error) {
     console.error("Error adding subreddit:", error);
