@@ -1,18 +1,4 @@
-const eventsBySubreddit = {
-    reactjs: [
-        { name: "React Meetup", date: "2025-11-01", location: "New York", attendees: 120 },
-        { name: "Hooks Workshop", date: "2025-12-05", location: "San Francisco", attendees: 80 }
-    ],
-    warthunder: [
-        { name: "JS Conference", date: "2025-10-20", location: "Los Angeles", attendees: 200 },
-        { name: "ECMAScript Meetup", date: "2025-11-15", location: "Chicago", attendees: 50 }
-    ],
-    gaming: [
-        { name: "Gaming Expo", date: "2025-12-10", location: "Las Vegas", attendees: 300 }
-    ]
-};
-
-function injectEventContent() {
+function injectEventContent(bbg) {
     const existing = document.getElementById('reddit-event');
     if (existing) existing.remove();
 
@@ -28,30 +14,36 @@ function injectEventContent() {
     container.innerHTML = `
       <div class="iframe-container">
         <iframe
-          src="https://hack-o-mania-ongod.vercel.app/"
+          src="https://hack-o-mania-ongod.vercel.app/?subreddit=${bbg}"
           style="border: none; width: 100%; height: 100%;"
         ></iframe>
-      </div> 
+        <a href="https://hack-o-mania-ongod.vercel.app/register-event" target="_blank" rel="noopener noreferrer">
+          <button class="px-6 py-3 bg-blue-600 text-white font-bold text-xl rounded-xl hover:bg-blue-700 transition duration-300 shadow-lg"
+            style="position: absolute; bottom: 20px; right: 20px;">
+            Add Event
+          </button>
+        </a>
+      </div>
     `;
 
     if (!document.getElementById('reddit-event-style')) {
         const style = document.createElement('style');
         style.id = 'reddit-event-style';
         style.textContent = `
-          .iframe-container {
-            position: relative;
-            width: 100%;
-            height: min(400px, 90vh);
-            overflow: hidden;
-          }
-          .iframe-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-          }
-        `;
+        .iframe-container {
+          position: relative;
+          width: 100%;
+          height: min(400px, 90vh);
+          overflow: hidden;
+        }
+        .iframe-container iframe {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+        }
+      `;
         document.head.appendChild(style);
     }
 
@@ -67,12 +59,11 @@ function checkAndInject() {
     const url = window.location.href;
     const match = url.match(/reddit\.com\/r\/([^/]+)/);
     if (match && match[1]) {
-        const subreddit = match[1].toLowerCase();
-        const events = eventsBySubreddit[subreddit];
-        if (events && events.length > 0) {
-            injectEventContent();
-        } else if (subreddit) {
-            injectEventContent();
+        const bbg = match[1];
+        const subredditKey = bbg.toLowerCase();
+
+        if (bbg) {
+            injectEventContent(bbg);
         } else {
             const existing = document.getElementById('reddit-event');
             if (existing) existing.remove();
