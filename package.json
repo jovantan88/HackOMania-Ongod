@@ -1,5 +1,11 @@
 {
-  "dependencies": {
-    "wrangler": "^3.109.1"
+  "name": "ongod",
+  "private": true,
+  "description": "Find your internet tribe IRL. Honorable mention at HackOMania 2025.",
+  "scripts": {
+    "dev": "npm run dev --prefix hackomania-ongod",
+    "build": "npm run build --prefix hackomania-ongod",
+    "lint": "npm run lint --prefix hackomania-ongod",
+    "extension:build": "npm run build --prefix reddit-extension-2"
   }
 }

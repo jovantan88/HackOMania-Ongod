@@ -37,7 +37,6 @@ function App() {
       return;
     }
     const subredditId = subredditData.id;
-    console.log('subredditId' + subredditId);
 
     const { data: categoryData, error: categoryError } = await supabase
       .from('subreddit_categories')
@@ -50,7 +49,6 @@ function App() {
       return;
     }
     const categoryId = categoryData.category_id;
-    console.log('meowmeow' + categoryId);
 
     const { data: categoryEventsData, error: categoryEventsError } = await supabase
       .from('category_events')
@@ -63,7 +61,6 @@ function App() {
     }
 
     const eventUrls = categoryEventsData.map(item => item.event_url);
-    console.log('eventUrls', eventUrls);
 
     const { data: eventDetailsData, error: eventDetailsError } = await supabase
       .from('events')
@@ -75,7 +72,6 @@ function App() {
       return;
     }
 
-    console.log('event details:', eventDetailsData);
     setEvents(eventDetailsData);
   }
 
@@ -148,7 +144,7 @@ function App() {
         </button>
       </div>
 
-      <h1 className="title">Subreddit Events</h1>
+      <h1 className="title">Ongod</h1>
       {subreddit ? (
         <>
           <p className="subreddit-info">
@@ -173,11 +169,11 @@ function App() {
               ))}
             </div>
           ) : (
-            <p className="no-events">No events for this subreddit.</p>
+            <p className="no-events">No matching IRL events for this subreddit yet.</p>
           )}
         </>
       ) : (
-        <p className="not-on-subreddit">Not on a subreddit page</p>
+        <p className="not-on-subreddit">Open a Reddit community to see nearby events.</p>
       )}
     </div>
   );

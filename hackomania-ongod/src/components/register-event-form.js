@@ -44,7 +44,7 @@ export default function RegisterEventForm() {
               name="eventLink"
               value={eventLink}
               onChange={(e) => setEventLink(e.target.value)}
-              placeholder="https://www.eventbrite.com/e/your-event"
+              placeholder="https://www.eventbrite.sg/e/your-event or https://lu.ma/..."
               required
               className="pl-10 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-purple-500 dark:focus:border-purple-400 focus:ring-purple-500 dark:focus:ring-purple-400"
               disabled={isSubmitting}

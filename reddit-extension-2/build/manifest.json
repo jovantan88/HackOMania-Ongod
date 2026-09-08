@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Reddit Events Extension",
+  "name": "Ongod — Reddit IRL Events",
   "version": "1.0.0",
-  "description": "Displays fake events based on the subreddit and injects a map automatically.",
+  "description": "See nearby real-world events that match the subreddit you are browsing.",
   "action": {
     "default_popup": "index.html"
   },

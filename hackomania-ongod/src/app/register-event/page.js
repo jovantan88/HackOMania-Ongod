@@ -1,75 +1,86 @@
 "use client"
+
 import * as React from "react"
-import { Sun, Moon } from 'lucide-react'
+import Link from "next/link"
+import { ArrowLeft, Moon, Sun } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import RegisterEventForm from "@/components/register-event-form"
 import { Button } from "@/components/ui/button"
 
 export default function RegisterEventPage() {
   const [darkMode, setDarkMode] = React.useState(false)
-  const [loading, setLoading] = React.useState(false)
 
   return (
     <div className={darkMode ? "dark" : ""}>
-      <div className="min-h-screen flex flex-col bg-white dark:bg-stone-900 transition-colors duration-300">
-        {/* Dark Mode Toggle */}
-        <div className="absolute top-4 right-4 z-20">
-          <Button variant="outline" size="icon" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? <Moon className="w-5 h-5 text-yellow-400" /> : <Sun className="w-5 h-5 text-yellow-500" />}
-          </Button>
-        </div>
-
-        {/* Hero Section */}
-        <main className="flex-grow">
-          <section
-            className={`py-24 ${
-              darkMode
-                ? "bg-gradient-to-r from-indigo-900 via-purple-900 to-pink-900 text-white"
-                : "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white"
-            }`}
+      <div className="relative flex min-h-screen flex-col bg-white transition-colors duration-300 dark:bg-stone-950">
+        <header className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-4 py-4">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm text-white backdrop-blur hover:bg-white/25"
           >
+            <ArrowLeft className="h-4 w-4" />
+            Back to map
+          </Link>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setDarkMode(!darkMode)}
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          >
+            {darkMode ? (
+              <Moon className="h-5 w-5 text-yellow-400" />
+            ) : (
+              <Sun className="h-5 w-5 text-yellow-500" />
+            )}
+          </Button>
+        </header>
+
+        <main className="flex-grow">
+          <section className="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 py-24 text-white dark:from-indigo-950 dark:via-purple-950 dark:to-pink-950">
             <div className="container mx-auto px-6 text-center">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white">
+              <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-white/80">
+                Honorable mention · HackOMania 2025
+              </p>
+              <h1 className="mb-6 text-4xl font-bold md:text-5xl lg:text-6xl">
                 Add an event
               </h1>
-              <p className="text-xl md:text-2xl mb-8 text-stone-200 mx-auto max-w-2xl">
-                Share a <a href="https://eventbrite.sg" className="underline text-white hover:text-indigo-200">eventbrite</a> or <a href="https://lu.ma" className="underline text-white hover:text-indigo-200">lu.ma</a> event on our platform.
+              <p className="mx-auto max-w-2xl text-lg text-stone-100 md:text-xl">
+                Paste a public{" "}
+                <a
+                  href="https://www.eventbrite.sg"
+                  className="underline decoration-white/50 underline-offset-4 hover:text-white"
+                >
+                  Eventbrite
+                </a>{" "}
+                or{" "}
+                <a
+                  href="https://lu.ma"
+                  className="underline decoration-white/50 underline-offset-4 hover:text-white"
+                >
+                  Luma
+                </a>{" "}
+                link. Gemini fills in the title, time, venue, and price.
               </p>
             </div>
           </section>
 
-          {/* Form Section */}
-          <section className="container mx-auto px-4 -mt-12 relative z-10 mb-16">
-            <Card className="max-w-3xl mx-auto dark:bg-stone-800 dark:text-white border dark:border-stone-700">
+          <section className="relative z-10 container mx-auto -mt-12 mb-16 px-4">
+            <Card className="mx-auto max-w-3xl border dark:border-stone-700 dark:bg-stone-900 dark:text-white">
               <CardHeader className="text-center">
                 <CardTitle className="text-2xl font-semibold text-stone-900 dark:text-stone-100">
-                  Submit your event
+                  Submit a public event
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <RegisterEventForm loading={loading} setLoading={setLoading} />
+                <RegisterEventForm />
               </CardContent>
             </Card>
           </section>
         </main>
 
-        {/* Background Decorations */}
-        <div className="fixed inset-0 -z-10 overflow-hidden">
-          <div
-            className={`absolute -top-1/3 -right-1/3 w-[40rem] h-[40rem] opacity-30 blur-3xl rounded-full ${
-              darkMode
-                ? "bg-gradient-to-br from-indigo-800 to-purple-900"
-                : "bg-gradient-to-br from-indigo-300 to-purple-400"
-            }`}
-          />
-          <div
-            className={`absolute -bottom-1/3 -left-1/3 w-[40rem] h-[40rem] opacity-30 blur-3xl rounded-full ${
-              darkMode
-                ? "bg-gradient-to-tl from-pink-800 to-indigo-900"
-                : "bg-gradient-to-tl from-pink-300 to-indigo-400"
-            }`}
-          />
-        </div>
+        <footer className="pb-8 text-center text-xs text-stone-500 dark:text-stone-400">
+          Built in 24 hours at HackOMania 2025 by Team Ongod
+        </footer>
       </div>
     </div>
   )

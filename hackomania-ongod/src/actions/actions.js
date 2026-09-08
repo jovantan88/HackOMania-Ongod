@@ -152,7 +152,7 @@ const eventSchema = z.object({
     .string()
     .url()
     .refine((url) => url.includes("eventbrite.") || url.includes("lu.ma"), {
-      message: "Only eventbrite and lu.ma links are allowed",
+      message: "Only Eventbrite and Luma links are allowed",
     }),
 });
 

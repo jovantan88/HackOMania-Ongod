@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { MapPin, Search, Calendar, Sun, Moon, Github, Plus } from 'lucide-react'
+import { MapPin, Calendar, Sun, Moon, Plus } from 'lucide-react'
 import Map, { Marker } from "react-map-gl/mapbox";
-import { Popup, FlyToInterpolator } from "react-map-gl/mapbox";
+import { Popup } from "react-map-gl/mapbox";
 import "mapbox-gl/dist/mapbox-gl.css"
 import { DateRange } from "react-date-range";
 import "react-date-range/dist/styles.css";
@@ -11,7 +11,6 @@ import "react-date-range/dist/theme/default.css";
 import { supabase } from "@/lib/supabase/supabaseClient";
 
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -22,32 +21,26 @@ import {
 
 import { getAllEvents, getSubredditEvents, trackEventClick, getAllEventClickCounts } from "@/actions/actions"
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-
 import EventDialog from "@/components/EventDialog";
+import AppHeader from "@/components/AppHeader";
+
+function getDefaultDateRange() {
+  const startDate = new Date()
+  startDate.setFullYear(startDate.getFullYear() - 2)
+  const endDate = new Date()
+  endDate.setMonth(endDate.getMonth() + 6)
+  return [{ startDate, endDate, key: "selection" }]
+}
 
 export default function Dashboard() {
-  // Add URL parameter check and set default zoom value
   const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : "");
   const defaultZoom = urlParams.get('subreddit') ? 9.8 : 11.5;
-  const hideGithubLogin = urlParams.get('subreddit') !== null; // new constant
+  const isEmbed = urlParams.get('subreddit') !== null;
 
-  const [searchTerm, setSearchTerm] = React.useState("")
   const [priceFilter, setPriceFilter] = React.useState("")
-  const [dateRange, setDateRange] = React.useState([{
-    startDate: new Date(),
-    endDate: new Date(new Date().setMonth(new Date().getMonth() + 6)),
-    key: 'selection'
-  }])
+  const [dateRange, setDateRange] = React.useState(getDefaultDateRange)
   const [showCalendar, setShowCalendar] = React.useState(false)
+  const [eventsLoading, setEventsLoading] = React.useState(true)
   const mapRef = React.useRef(null);
   const [viewState, setViewState] = React.useState({
     longitude: 103.8198,
@@ -70,7 +63,7 @@ export default function Dashboard() {
 
   // Function to handle hover on event card
   const handleEventHover = (event) => {
-    if (!mapRef.current) return;
+    if (!mapRef.current || event?.coordinates?.[0] == null || event?.coordinates?.[1] == null) return;
 
     mapRef.current.getMap().flyTo({
       center: event.coordinates,
@@ -114,8 +107,8 @@ export default function Dashboard() {
     }
     fetchSession();
     async function fetchEvents() {
+      setEventsLoading(true)
       const result = await getAllEvents()
-      console.log("getAllEvents result:", result)
       if (result.success && result.events) {
         const transformed = result.events.map(event => ({
           id: event.id,
@@ -130,10 +123,11 @@ export default function Dashboard() {
         })).sort((a, b) => new Date(a.date) - new Date(b.date))
         setEvents(transformed)
       }
+      setEventsLoading(false)
     }
     async function fetchSubredditEvents(subreddit) {
+      setEventsLoading(true)
       const result = await getSubredditEvents(subreddit)
-      console.log("getSubredditEvents result:", result)
       if (result.success && result.events) {
         const transformed = result.events.map(event => ({
           id: event.id,
@@ -148,6 +142,7 @@ export default function Dashboard() {
         })).sort((a, b) => new Date(a.date) - new Date(b.date))
         setEvents(transformed)
       }
+      setEventsLoading(false)
     }
     // check for subreddit query param
     const urlParams = new URLSearchParams(window.location.search)
@@ -190,7 +185,6 @@ export default function Dashboard() {
 
   const filteredEvents = events.filter((event) => {
     if (!event) return false;
-    const matchesSearch = (event.name || "").toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPrice =
       priceFilter === "" ||
       priceFilter === "all" ||
@@ -201,9 +195,10 @@ export default function Dashboard() {
     const start = dateRange[0].startDate;
     const end = dateRange[0].endDate;
     const matchesDate =
-      (!start || (eventDate && eventDate >= start)) &&
-      (!end || (eventDate && eventDate <= end))
-    return matchesSearch && matchesPrice && matchesDate
+      !eventDate ||
+      Number.isNaN(eventDate.getTime()) ||
+      ((!start || eventDate >= start) && (!end || eventDate <= end))
+    return matchesPrice && matchesDate
   })
 
   // Helper to compute network click count
@@ -226,25 +221,52 @@ export default function Dashboard() {
   return (
     <div className={darkMode ? "dark" : ""}>
       <div className="flex h-screen flex-col relative bg-white dark:bg-gray-900 text-black dark:text-white">
-        <div className="absolute top-0 right-0 m-4 z-20 flex items-center space-x-2">
-          {/* Conditionally render GitHub login */}
-          {!hideGithubLogin && (
-            session ? (
-              <Button variant="outline" disabled>Logged in</Button>
+        {!isEmbed && (
+          <AppHeader
+            session={session}
+            darkMode={darkMode}
+            onToggleTheme={() => setDarkMode(!darkMode)}
+            onLogin={loginWithGitHub}
+          />
+        )}
+        {isEmbed && (
+          <div className="absolute top-0 right-0 m-4 z-20">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setDarkMode(!darkMode)}
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            </Button>
+          </div>
+        )}
+        <div className="flex flex-1 min-h-0 relative">
+          <div className="w-1/2 max-w-[500px] h-full overflow-y-scroll border-r custom-scrollbar">
+            <div className="p-4">
+              <h2 className="text-xl font-bold">Events</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                Meetups on the Singapore map
+              </p>
+            </div>
+            {eventsLoading ? (
+              <p className="px-4 text-sm text-gray-500">Loading events…</p>
+            ) : filteredEvents.length === 0 ? (
+              <div className="px-4 py-8 text-sm text-gray-500 dark:text-gray-400 space-y-3">
+                <p className="font-medium text-gray-800 dark:text-gray-200">
+                  No events in this range
+                </p>
+                <p>
+                  Paste an Eventbrite or Luma link to put a meetup on the map.
+                </p>
+                <a href="/register-event">
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" /> Add event
+                  </Button>
+                </a>
+              </div>
             ) : (
-              <Button onClick={loginWithGitHub} variant="outline">
-                Sign up with <Github className="w-4 h-4 inline-block" />
-              </Button>
-            )
-          )}
-          <Button variant="outline" onClick={() => setDarkMode(!darkMode)}>
-            {darkMode ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-          </Button>
-        </div>
-        <div className="flex flex-1 relative">
-          <div className="w-1/2 max-w-[500px] h-screen overflow-y-scroll border-l custom-scrollbar">
-            <h2 className="text-xl font-bold p-4">Events</h2>
-            {filteredEvents.map((event, index) => (
+              filteredEvents.map((event, index) => (
               <div
                 key={`event-list-${event.id}-${index}`}
                 className="cursor-pointer rounded border-b py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
@@ -259,36 +281,31 @@ export default function Dashboard() {
                       <MapPin className="mr-1 inline-block h-4 w-4" />
                       {event.location}
                     </p>
-                    {/* New: display click counts */}
                     <div className="text-xs text-gray-500">
-                      Clicks: {eventClicks[event.url] ? eventClicks[event.url].length : 0}{" "}
-                      {session && <span> | Network clicks: {computeNetworkClicks(event.url)}</span>}
+                      Interest: {eventClicks[event.url] ? eventClicks[event.url].length : 0}
+                      {session && <span> · In your network: {computeNetworkClicks(event.url)}</span>}
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 float-start text-bottom">{new Date(event.date).toDateString()}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 float-start text-bottom">{event.date ? new Date(event.date).toDateString() : "Date TBA"}</p>
                       <p className="text-xs font-bold float-end">{event.price === 0 ? "Free" : `$${event.price}`}</p>
                     </div>
                   </div>
-                  <img
-                    src={event.image_url}
-                    width={150}
-                    height={80}
-                    alt="Picture of the author"
-                    className="rounded"
-                  />
+                  {event.image_url && (
+                    <img
+                      src={event.image_url}
+                      width={150}
+                      height={80}
+                      alt={event.name || "Event"}
+                      className="rounded"
+                    />
+                  )}
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
           <div className="flex-1 relative">
             <div className="p-4 absolute top-0 left-0 w-full z-10 flex flex-row gap-2">
-              {/* <Input
-                type="search"
-                placeholder="Search events..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-[300px] text-xl"
-              /> */}
               <div className="flex items-center space-x-2">
                 <Select value={priceFilter} onValueChange={setPriceFilter}>
                   <SelectTrigger className="w-[180px]">
@@ -302,8 +319,8 @@ export default function Dashboard() {
                   </SelectContent>
                 </Select>
               </div>
-              <a href={`/register-event`}>
-                <Button><Plus className="w-4 h-4 mr-1" /> event</Button>
+              <a href="/register-event">
+                <Button><Plus className="w-4 h-4 mr-1" /> Add event</Button>
               </a>
             </div>
             <Map
@@ -313,7 +330,7 @@ export default function Dashboard() {
               mapStyle={mapStyle}
               mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
             >
-              {filteredEvents.map((event, index) => (
+              {filteredEvents.filter((event) => event.coordinates?.[0] != null && event.coordinates?.[1] != null).map((event, index) => (
                 <Marker
                   key={`marker-${event.id}-${index}`}
                   longitude={event.coordinates[0]}
@@ -356,7 +373,7 @@ export default function Dashboard() {
               right: "20px",
               zIndex: 10
             }}>
-              <Button onClick={() => setShowCalendar(prev => !prev)} variant="outline">
+              <Button onClick={() => setShowCalendar(prev => !prev)} variant="outline" aria-label="Filter by date">
                 <Calendar className="w-5 h-5" />
               </Button>
             </div>

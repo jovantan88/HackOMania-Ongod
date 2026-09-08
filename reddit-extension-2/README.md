@@ -1,8 +1,7 @@
-# React + Vite
+# Ongod Chrome extension
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Manifest V3 extension that injects matching IRL events into Reddit subreddits.
 
-Currently, two official plugins are available:
+This is the current extension. `../reddit-extension` is an earlier prototype and is not maintained.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+See the [root README](../README.md) for setup instructions.
